@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "district_id": 1,
+        "name": "วังบูรพาภิรมย์",
+        "postal_code": "10200"
+    },
+    {
+        "id": 2,
+        "district_id": 1,
+        "name": "ตลาดยอด",
+        "postal_code": "10200"
+    },
+    {
+        "id": 3,
+        "district_id": 2,
+        "name": "สวนจิตรลดา",
+        "postal_code": "10300"
+    },
+    {
+        "id": 4,
+        "district_id": 3,
+        "name": "กระทุ่มราย",
+        "postal_code": "10530"
+    },
+    {
+        "id": 5,
+        "district_id": 4,
+        "name": "ปากน้ำ",
+        "postal_code": "10270"
+    }
+]

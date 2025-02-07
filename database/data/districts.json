@@ -1,0 +1,7 @@
+[
+    {"id": 1, "province_id": 1, "name": "พระนคร"},
+    {"id": 2, "province_id": 1, "name": "ดุสิต"},
+    {"id": 3, "province_id": 1, "name": "หนองจอก"},
+    {"id": 4, "province_id": 2, "name": "เมืองสมุทรปราการ"},
+    {"id": 5, "province_id": 3, "name": "เมืองนนทบุรี"}
+]
