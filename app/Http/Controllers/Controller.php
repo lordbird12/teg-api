@@ -20,7 +20,8 @@ use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Illuminate\Support\Facades\DB;
 use OneSignal;
-
+use Illuminate\Support\Facades\Response;
+use Mpdf\Barcode\BarcodeGeneratorFactory;
 
 class Controller extends BaseController
 {
@@ -200,32 +201,32 @@ class Controller extends BaseController
 
     // public function uploadFile($file)
     // {
-        // $input['filename'] = time() . '.' . $file->extension();
+    // $input['filename'] = time() . '.' . $file->extension();
 
-        // $destinationPath = public_path('/file_thumbnail');
-        // if (!File::exists($destinationPath)) {
-        //     File::makeDirectory($destinationPath, 0777, true);
-        // }
+    // $destinationPath = public_path('/file_thumbnail');
+    // if (!File::exists($destinationPath)) {
+    //     File::makeDirectory($destinationPath, 0777, true);
+    // }
 
-        // $destinationPath = public_path($path);
-        // $file->move($destinationPath, $input['filename']);
+    // $destinationPath = public_path($path);
+    // $file->move($destinationPath, $input['filename']);
 
-        // return $path . $input['filename'];
+    // return $path . $input['filename'];
 
-        // $file = $request->getClientOriginalName();
-        // $path = $request->getPath();
+    // $file = $request->getClientOriginalName();
+    // $path = $request->getPath();
 
-        // $input['filename'] = time() . '.' . $request->extension();
+    // $input['filename'] = time() . '.' . $request->extension();
 
-        // $destinationPath = public_path('/file_thumbnail');
-        // if (!File::exists($destinationPath)) {
-        //     File::makeDirectory($destinationPath, 0777, true);
-        // }
+    // $destinationPath = public_path('/file_thumbnail');
+    // if (!File::exists($destinationPath)) {
+    //     File::makeDirectory($destinationPath, 0777, true);
+    // }
 
-        // $destinationPath = public_path($path);
-        // $file->move($destinationPath, $file);
+    // $destinationPath = public_path($path);
+    // $file->move($destinationPath, $file);
 
-        // return $path . $input['filename'];
+    // return $path . $input['filename'];
     // }
 
     // public function uploadFile($file, $path)
@@ -606,7 +607,7 @@ class Controller extends BaseController
         $content = '
             <div style="font-size: 24px; text-align: center;"> <b>ห้างหุ่นส่วนจำกัด ส.สปีดออโต้ปากน้ำใหญ่(สำหนักงานใหญ่) </div>
             <div style="font-size: 24px; text-align: center;"> <b>251/2 หมู่ 11 ตำบลนาป่า อำเภอเมือง จังหวัดเพชรบูรณ์ 67000 โทร. 081-239-3070</div>
-            <div style="font-size: 24px; text-align: center;"> <b>เลขประจำตัวผู้เสียภาษีอากร '.$tax_ID.'</div>
+            <div style="font-size: 24px; text-align: center;"> <b>เลขประจำตัวผู้เสียภาษีอากร ' . $tax_ID . '</div>
             <div style="font-size: 24px; text-align: center;"> <b>ใบแจ้งราย PAY SLIP</div>
             <style>
                 table {
@@ -623,21 +624,21 @@ class Controller extends BaseController
             <table>
                 <tr>
                     <td style="width:10%; border: none;">ชื่อพนักงาน</td>
-                    <td style="width:20%; border: none;">'.$name_pay.'</td>
+                    <td style="width:20%; border: none;">' . $name_pay . '</td>
                     <td style="width:10%; border: none;"></td>
                     <td style="width:15%; border: none;"></td>
                     <td style="width:15%; border: none;"></td>
                     <td style="width:10%; text-align: center; border: none;">วิกที่</td>
-                    <td style="width:20%; border: none;">'.$week.'</td>
+                    <td style="width:20%; border: none;">' . $week . '</td>
                 </tr>
                 <tr>
                     <td style="border: none;">ตำแหน่ง</td>
-                    <td style="border: none;">'.$position.'</td>
+                    <td style="border: none;">' . $position . '</td>
                     <td style="border: none;"></td>
                     <td style="border: none;"></td>
                     <td style="border: none;"></td>
                     <td style="text-align: center; border: none;">วันที่สั่งจ่าย</td>
-                    <td style="border: none;">'.$pay_date.'</td>
+                    <td style="border: none;">' . $pay_date . '</td>
                 </tr>
                 <tr>
                     <th colspan="2">รายได้</th>
@@ -647,33 +648,33 @@ class Controller extends BaseController
                     <th>หมายเหตุ</th>
                 </tr>
             ';
-            $content .= '
+        $content .= '
                 <tr>
                     <td colspan="2">เงินเดือน</td>
-                    <td style="text-align: right;">'.$salary.'</td>
+                    <td style="text-align: right;">' . $salary . '</td>
                     <td colspan="2" >หักสาย</td>
-                    <td style="text-align: right;">'.$late.' </td>
+                    <td style="text-align: right;">' . $late . ' </td>
                     <td ></td>
                 </tr>
                 <tr>
                     <td colspan="2" >ล่วงเวลา</td>
-                    <td style="text-align: right;">'.$ot.'</td>
+                    <td style="text-align: right;">' . $ot . '</td>
                     <td colspan="2" >หักลา 1 วัน </td>
-                    <td style="text-align: right;">'.$Leave.'</td>
+                    <td style="text-align: right;">' . $Leave . '</td>
                     <td ></td>
                 </tr>
                 <tr>
                     <td colspan="2">ทำงานในวันหยุด</td>
-                    <td style="text-align: right;">'.$workholidays.'</td>
+                    <td style="text-align: right;">' . $workholidays . '</td>
                     <td colspan="2" >หักเบิกล้วงหน้า </td>
-                    <td style="text-align: right;">'.$ahead.'</td>
+                    <td style="text-align: right;">' . $ahead . '</td>
                     <td ></td>
                 </tr>
                 <tr>
                     <td colspan="2">&nbsp;</td>
                     <td style="text-align: right;"></td>
                     <td colspan="2" >หักค่าประกันสังคม </td>
-                    <td style="text-align: right;">'.$insurance.'</td>
+                    <td style="text-align: right;">' . $insurance . '</td>
                     <td ></td>
                 </tr>
                 <tr>
@@ -713,16 +714,16 @@ class Controller extends BaseController
                 </tr>
             ';
 
-            $content .= '
+        $content .= '
                 <tr>
                     <td colspan="2" rowspan="2" style="text-align: right;">รวมรายการได้</td>
-                    <td rowspan="2" style="text-align: right;">'.$in.'</td>
+                    <td rowspan="2" style="text-align: right;">' . $in . '</td>
                     <td colspan="2" rowspan="2" style="text-align: right;">รวมรายการหัก</td>
-                    <td rowspan="2" style="text-align: right;">'.$out.'</td>
+                    <td rowspan="2" style="text-align: right;">' . $out . '</td>
                     <td style="text-align: center;">เงินได้สุทธิ</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;">'.$income.'</td>
+                    <td style="text-align: center;">' . $income . '</td>
                 </tr>
             </table>
             <br>
@@ -730,14 +731,14 @@ class Controller extends BaseController
                 <tr>
                     <td style="border: none; width:10%;">&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</td>
                     <td style="border: none; width:45%;">ผู้บันทึก............................................................<br>
-                    &nbsp;&nbsp;&nbsp;('.$name_save.') </td>
+                    &nbsp;&nbsp;&nbsp;(' . $name_save . ') </td>
                     <td style="border: none; width:45%;">ผู้รับเงิน............................................................<br>
-                    &nbsp;&nbsp;&nbsp;('.$name_pay.')</td>
+                    &nbsp;&nbsp;&nbsp;(' . $name_pay . ')</td>
                 </tr>
                 <tr>
                     <td style="border: none; width:10%;"></td>
                     <td style="border: none; width:45%;">ผู้อนุมัติจ่าย.....................................................<br>
-                    &nbsp;&nbsp;&nbsp;('.$name_approve.')</td>
+                    &nbsp;&nbsp;&nbsp;(' . $name_approve . ')</td>
                 </tr>
             </table>
         ';
@@ -756,7 +757,8 @@ class Controller extends BaseController
                     'I' => 'THSarabunIT๙ Italic.ttf',
                     'B' => 'THSarabunIT๙ Bold.ttf',
                     'BI' => 'THSarabunIT๙ BoldItalic.ttf',
-                ], 'th-sarabun' => [
+                ],
+                'th-sarabun' => [
                     'R' => 'THSarabun.ttf',
                     'I' => 'THSarabun Italic.ttf',
                     'B' => 'THSarabun Bold.ttf',
@@ -780,7 +782,6 @@ class Controller extends BaseController
         $mpdf->AddPage();
         $mpdf->WriteHTML($content);
         $mpdf->Output();
-
     }
 
     /////////////////////////////////////////// seach datatable  ///////////////////////////////////////////
@@ -832,14 +833,14 @@ class Controller extends BaseController
         try {
             // Fetch all devices
             $devices = Device::whereNotNull('notify_token')->pluck('notify_token', 'user_id')->toArray();
-    
+
             if (empty($devices)) {
                 return response()->json(['status' => 'error', 'message' => 'No devices found'], 404);
             }
-    
+
             // Extract unique FCM tokens
             $FcmTokens = array_values(array_unique($devices));
-    
+
             // echo $FcmTokens;
             // exit;
             // Prepare notifications
@@ -860,13 +861,13 @@ class Controller extends BaseController
                 'ios_badgeType' => 'Increase',
                 'ios_badgeCount' => 1,
             ];
-  
+
             // Send notification
             $response = OneSignal::sendNotificationCustom($params);
-          
+
             // Log notification if needed
             // $this->addNotifyLog($title, $body, $target_id, $type, array_keys($devices));
-    
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Notification sent successfully',
@@ -954,11 +955,501 @@ class Controller extends BaseController
 
     public function getNetBalance($member_id)
     {
-        $totalIn = DB::table('wallet_transactions')->where('type', 'I')->where('member_id',$member_id)->sum('amount');
-        $totalOut = DB::table('wallet_transactions')->where('type', 'O')->where('member_id',$member_id)->sum('amount');
+        $totalIn = DB::table('wallet_transactions')->where('type', 'I')->where('member_id', $member_id)->sum('amount');
+        $totalOut = DB::table('wallet_transactions')->where('type', 'O')->where('member_id', $member_id)->sum('amount');
         $netBalance = $totalIn - $totalOut;
-        
+
         return $netBalance;
     }
 
+    public function fullreceipt()
+    {
+
+        $items = [];
+
+        for ($i = 1; $i <= 8; $i++) { // สร้าง 10 รายการ
+            $items[] = [
+                'id' => $i,
+                'name' => 'Product ' . $i,
+                'unit' => rand(1, 50),  // จำนวนสุ่ม 1 - 100
+                'unitprice' => rand(50, 500), // ราคาต่อหน่วยสุ่ม 50 - 500
+            ];
+        }
+        $randoms = 1; // สุ่มค่า 0 หรือ 1
+        $check = '';
+
+        switch ($randoms) {
+            case 1:
+                $check = "&#9745;"; // ☑ (ถูกเลือก)
+                break;
+            case 0:
+            default:
+                $check = "&#9744;"; // ☐ (ไม่ถูกเลือก)
+                break;
+        }
+        $customername = 'บริษัท พี ยู เอ็น อินเทลลิเจนท์ จำกัด';
+        $customeraddress = 'เลขที่ 145/161 ซอยคู้บอน 27/7 ถนนคู้บอน แขวงท่าแร้งเขตบางเขน กรุงเทพมหานคร 10220';
+        $customertaxid = '0105557083391';
+        $customerref = 'IVT-201910001';
+        $issuedate = '01/10/2019';
+        $no = 'RT-20191000005';
+        $attention = 'Keng';
+
+        $issueexit = 'Thai Express Global Cargo Co.,Ltd';
+        $addressissuer = 'อาคาร ไทยทาวเวอร์ ห้องที่ 145/161 ซอย27/7 ถนนคู้บอน แขวงท่าแร้ง เขตบางเขน กรุงเทพมหานคร 10220';
+        $email = 'Sale@teglogistics.net';
+        $w = 'https://www.tegcargo.com/';
+        $taxid = '0105557123422';
+        $preparedby = 'Panupong Palakawong';
+
+
+        $imagePath = storage_path('app/public/logo/logo-gp3-01-1980x1980.png');
+
+        if (file_exists($imagePath)) {
+            $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+            $data = file_get_contents($imagePath);
+            $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        } else {
+            $base64 = ''; // หรือใส่ URL ของโลโก้สำรอง
+        }
+
+        $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+        $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'default_font_size' => 12,
+            'fontDir' => array_merge($fontDirs, [
+                base_path() . '/custom/font/directory',
+            ]),
+            'fontdata' => $fontData + [
+                'th-sarabun' => [
+                    'R' => 'THSarabun.ttf',
+                    'I' => 'THSarabun Italic.ttf',
+                    'B' => 'THSarabun Bold.ttf',
+                    'BI' => 'THSarabun BoldItalic.ttf',
+                ],
+            ],
+            'default_font' => 'th-sarabun',
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'margin_top' => 10,
+            'margin_bottom' => 15,
+            'margin_header' => 5,
+            'margin_footer' => 5,
+            'orientation' => 'P',
+        ]);
+
+        $mpdf->SetTitle('ใบเสร็จแบบเต็ม');
+
+        $itemsPerPage = 15;
+        $totalItems = count($items);
+        $pages = ceil($totalItems / $itemsPerPage);
+        $TotalAmount = 0;
+        $TotalAmounts = 0;
+
+        for ($page = 0; $page < $pages; $page++) {
+            if ($page > 0) {
+                $mpdf->AddPage();
+            }
+            $html = '
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width:20%;font-size: 28;font-weight: bold;">
+                <p>ใบเสร็จรับเงิน</p>
+                <p>Receipt</p></td>
+                <td style="width:50%;text-align:left;">ต้นฉบับ (Original)</td>
+                <td style="width:30%;text-align:right;padding-right:50px;">
+                    <img src="' . $base64 . '" alt="logo" style="width:100px;height:auto;">
+                </td>
+            </tr>
+        </table>
+        <table style="width: 100%; border-collapse: collapse;margin-top:10px;">
+            <tr>
+                <td style="width:20%;font-size: 16;"><strong>ลูกค้า</strong> / Customer</td>
+                <td style="width:50%;font-size: 16;">' . $customername . '</td>
+                <td style="width:10%;font-size: 16;"><strong>เลข</strong> / No.</td>
+                <td style="width:20%;font-size: 16;">' . $no . '</td>
+            </tr>
+            <tr>
+                <td style="width:20%;font-size: 16;"><strong>ที่อยู่</strong> / Address</td>
+                <td style="width:50%;font-size: 16;">' . nl2br(htmlspecialchars(substr($customeraddress, 0, 148))) . '</td>
+                <td style="width:10%;font-size: 16;"><strong>วันที่ </strong>/ Issue</td>
+                <td style="width:20%;font-size: 16;">' . $issuedate . '</td>
+            </tr>';
+            if (strlen($customeraddress) > 100) { // เพิ่มแถวใหม่ถ้าที่อยู่ยาว
+                $html .= '
+            <tr>
+                <td style="width:20%;font-size: 16;"></td>
+                <td style="width:50%;font-size: 16;">' . nl2br(htmlspecialchars(substr($customeraddress, 148, 300))) . '</td>
+                <td style="width:10%;font-size: 16;"><strong>อ้างอิง</strong> / Ref</td>
+                <td style="width:20%;font-size: 16;">' . $customerref . '</td>
+            </tr>';
+            } else {
+                $html .= '
+            <tr>
+                <td style="width:20%;font-size: 16;"></td>
+                <td style="width:50%;font-size: 16;"></td>
+                <td style="width:10%;font-size: 16;"><strong>อ้างอิง</strong> / Ref</td>
+                <td style="width:20%;font-size: 16;">' . $customerref . '</td>
+            </tr>';
+            }
+            $html .= '
+            </table>
+            <table style="width: 100%; border-collapse: collapse;margin-bottom:10px;">
+            <tr>
+                <td style="width:20%;font-size: 16;"><strong>เลขผู้เสียภาษี</strong> / Tax ID</td>
+                <td style="width:20%;font-size: 16;">' . $customertaxid . '</td>
+                <td style="width:60%;font-size: 16;"><strong>E</strong>:-</td>
+            </tr>
+            <tr>
+                <td style="width:20%;font-size: 16;border-bottom: 1px solid black;"><strong>ผู้ติดต่อ</strong> / Attention</td>
+                <td style="width:20%;font-size: 16;border-bottom: 1px solid black;">' . $attention . '</td>
+                <td style="width:60%;font-size: 16;border-bottom: 1px solid black;"><strong>T</strong>:-</td>
+            </tr>
+            </table>
+            <table style="width: 100%; border-collapse: collapse;margin-top:10px;">
+                <tr>
+                    <td style="width:10%;font-size: 16;"><strong>ผู้ออก</strong></td>
+                    <td style="width:50%;font-size: 16;">' . $issueexit . '</td>
+                    <td style="width:20%;font-size: 16;"><strong>เลขผู้เสียภาษี</strong> / Tax ID</td>
+                    <td style="width:20%;font-size: 16;">' . $taxid . '</td>
+                </tr>
+                <tr>
+                    <td style="width:10%;font-size: 16;">issuer</td>
+                    <td style="width:50%;font-size: 16;">' . nl2br(htmlspecialchars(substr($addressissuer, 0, 155))) . '</td>
+                    <td style="width:20%;font-size: 16;"><strong>จัดเตรียมโดย</strong> / Prepared by</td>
+                    <td style="width:20%;font-size: 16;">' . $preparedby . '</td>
+                </tr>';
+            if (strlen($addressissuer) > 155) { // เพิ่มแถวใหม่ถ้าที่อยู่ยาว
+                $html .= '
+                <tr>
+                    <td style="width:10%;font-size: 16;"></td>
+                    <td style="width:50%;font-size: 16;">' . nl2br(htmlspecialchars(substr($addressissuer, 155, 300))) . '</td>
+                    <td style="width:20%;font-size: 16;"><strong>T</strong>: 25</td>
+                    <td style="width:20%;font-size: 16;"><strong>E</strong>:' . $email . '</td>
+                </tr>';
+            } else {
+                $html .= '
+                    <tr>
+                        <td style="width:10%;font-size: 16;"></td>
+                        <td style="width:50%;font-size: 16;"></td>
+                        <td style="width:20%;font-size: 16;"><strong>T</strong>: 25</td>
+                        <td style="width:20%;font-size: 16;"><strong>E</strong>:</td>
+                    </tr>';
+            }
+            $html .= '
+                <tr>
+                    <td style="width:10%;font-size: 16;"></td>
+                    <td style="width:50%;font-size: 16;"></td>
+                    <td colspan="2" style="width:20%;font-size: 16;"><strong>W</strong>: https://peakengine.com</td>
+
+                </tr>
+            </table>
+            <table style="width: 100%; border-collapse: collapse;margin-top:10px;">
+            <thead>
+                <tr>
+                    <td style="width:10%;font-size: 16;border-top: 1px solid black;border-bottom: 1px solid black;padding-left: 5px;">
+                        <p style="font-weight: bold;">รหัส</p>
+                        <p>ID no.</p>
+                    </td>
+                    <td style="width:45%;font-size: 16;border: 1px solid black;padding-left: 5px;">
+                        <p style="font-weight: bold;">คำอธิบาย</p>
+                        <p>Description</p>
+                    </td>
+                    <td style="width:10%;font-size: 16;border: 1px solid black;padding-left: 5px;">
+                        <p style="font-weight: bold;">จำนวน</p>
+                        <p>Quantity</p>
+                    </td>
+                    <td style="width:12%;font-size: 16;border: 1px solid black;padding-left: 5px;">
+                        <p style="font-weight: bold;">ราคาต่อหน่วย</p>
+                        <p>Unit Price</p>
+                    </td>
+                    <td style="width:8%;font-size: 16;border: 1px solid black;text-align: center;">
+                        <p style="font-weight: bold;">ภาษี</p>
+                        <p>VAT</p>
+                    </td>
+                    <td style="width:15%;font-size: 16;border-top: 1px solid black;border-bottom: 1px solid black;padding-left: 5px;">
+                        <p style="font-weight: bold;">มูลค่าก่อนภาษี</p>
+                        <p>Pre-Tax Amount</p>
+                    </td>
+                </tr>
+                </thead>
+                <tbody>';
+            for ($i = $page * $itemsPerPage; $i < min(($page + 1) * $itemsPerPage, $totalItems); $i++) {
+                // return $services[$i];
+                $product = $items[$i];
+                $sum = (floatval(str_replace(',', '', $product['unitprice'])) * intval($product['unit']));
+                $html .= '
+                            <tr id="body">
+                                <td style="text-align: left; border: none;border-right: 1px solid #000;padding-left: 5px;">' . ($i + 1) . '</td>
+                                <td style="text-align: left; border-right: none; border-top: none; border-bottom: none; padding-left: 5px;border-right: 1px solid #000;">' . $product['name'] . '</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none;padding-right: 5px;border-right: 1px solid #000;">' . $product['unit'] . '</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none; padding-right: 5px;border-right: 1px solid #000;">' . number_format($product['unitprice'], 2) . '</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none; padding-right: 5px;border-right: 1px solid #000;">7%</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none; padding-right: 5px;">' . number_format($sum, 2) . '</td>
+                            </tr>';
+                $TotalAmounts += $sum;
+            }
+            $TotalAmount = $TotalAmounts;
+
+
+            $emptyRowsNeeded = $itemsPerPage - min($itemsPerPage, $totalItems - $page * $itemsPerPage);
+            for ($j = 0; $j < $emptyRowsNeeded; $j++) {
+                $html .= '
+                            <tr id="body">
+                                <td style="text-align: center; border: none;border-right: 1px solid #000;">&nbsp;</td>
+                                <td style="text-align: left; border-right: none; border-top: none; border-bottom: none; padding-left: 10px;border-right: 1px solid #000;">&nbsp;</td>
+                                <td style="text-align: center; border-right: none; border-top: none; border-bottom: none;border-right: 1px solid #000;">&nbsp;</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none;border-right: 1px solid #000;">&nbsp;</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none;border-right: 1px solid #000;">&nbsp;</td>
+                                <td style="text-align: right; border-top: none; border-bottom: none;">&nbsp;</td>
+                            </tr>';
+            }
+
+            $tax_Amount = $TotalAmount * 0.07;
+            $Amount = $TotalAmount;
+            $TotalAmounts = $Amount + $tax_Amount;
+            $totalAmounttext = $this->convertToThaiText(number_format($TotalAmounts, 2));
+            $html .= '
+        </tbody>
+        </table>
+        <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="width:45%;border-top: 1px solid black;height: 30px;"><strong>หมายเหตุ</strong> : Remarks</td>
+            <td colspan="2" style="text-align: right;border-right: 1px solid black;border-bottom: 1px solid black; border-top: 1px solid black;height: 30px;"><strong>ราคาสุทธิสินค้าที่เสียภาษี (บาท)</strong> / Pre-VAT Amount</td>
+            <td style="width:15%;text-align: right; border-bottom: 1px solid black;border-top: 1px solid black;height: 30px;">' . number_format($Amount, 2) . '</td>
+        </tr>
+        <tr>
+            <td>ใบเสร็จรับเงินนี้จะไม่สมบูรณ์หากยังไม่ได้รับชำระเงิน</td>
+            <td colspan="2" style="height: 30px;text-align: right;border-right: 1px solid black;border-bottom: 1px solid black; "><strong>ภาษีมูลค่าเพิ่ม (บาท)</strong> / VAT</td>
+            <td style="text-align: right; border-bottom: 1px solid black;height: 30px;">' . number_format($tax_Amount, 2) . '</td>
+        </tr>
+        <tr>
+            <td rowspan="2" style="border-bottom: 1px solid black;"></td>
+            <td colspan="2" style="height: 30px;text-align: right; border-right: 1px solid black;border-bottom: 1px solid black;"><strong>จำนวนเงินทั้งสิ้น (บาท)</strong> / Grand Total</td>
+            <td style="height: 30px;text-align: right; border-bottom: 1px solid black;">' . number_format($TotalAmounts, 2) . '</td>
+        </tr>
+        <tr>
+            <td style="height: 30px;font-size: 14;text-align: left; border-bottom: 1px solid black;font-weight: bold; background-color: #d3d3d3;width:15%;padding-left: 5px;">จำนวนเงินรวมทั้งสิ้น</td>
+            <td colspan="2" style="height: 30px;font-size: 14;text-align: right;border-bottom: 1px solid black;font-weight: bold; background-color: #d3d3d3;width:50%;padding-right: 5px;">' . $totalAmounttext . '</td>
+        </tr>
+        </table>
+        <table style="width: 100%; border-collapse: collapse;margin-top:10px;">
+            <tr>
+                <td style="width:50%;"><strong>การชำระเงิน</strong> / Payment</td>
+                <td style="width:25%;"><strong>อนุมัติโดย</strong> / Approved by</td>
+                <td style="width:25%;"><strong>รับชำระ</strong> / Received by</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align: left;"><span style="font-family: Arial, sans-serif; font-size: 16px; display: inline-block;">' . $check . '</span> เงินสด : ชำระวันที่ 01/10/2019 ยอด ' . number_format($TotalAmounts, 2) . '</td>
+            </tr>
+            <tr>
+                <td colspan="3" >ข้อมูลเพิ่มเติม......................................................................</td>
+            </tr>
+            <tr>
+                <td colspan="3" ><span style="font-family: Arial, sans-serif; font-size: 16px; display: inline-block;">' . $check . '</span> หัก ณ ที่จ่าย</td>
+            </tr>
+            <tr>
+                <td style="width:50%;">ข้อมูลเพิ่มเติม......................................................................</td>
+                <td style="width:25%;">
+                    <p>.........................................................</p>
+                    <p>วันที่ / Date ...................................</p>
+                </td>
+                <td style="width:25%;">
+                    <p>.........................................................</p>
+                    <p>วันที่ / Date ...................................</p>
+                </td>
+            </tr>
+        </table>';
+            $mpdf->WriteHTML($html);
+        }
+        // $mpdf->Output('receipt.pdf', \Mpdf\Output\Destination::INLINE);
+        $pdfContent = $mpdf->Output('', 'S');
+
+        $contentLength = strlen($pdfContent);
+
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename=mpdf.pdf',
+            'Access-Control-Expose-Headers' => 'Accept-Ranges',
+            'Access-Control-Allow-Headers' => 'Accept-Ranges,range',
+            'Accept-Ranges' => 'bytes',
+            'Content-Length' => $contentLength,
+        ];
+
+        return Response::make($pdfContent, 200, $headers);
+    }
+
+    public function abbreceipt()
+    {
+
+        $items = [];
+
+        for ($i = 1; $i <= 15; $i++) { // สร้าง 10 รายการ
+            $items[] = [
+                'id' => $i,
+                'name' => 'Product ' . $i,
+                'unit' => rand(1, 5),  // จำนวนสุ่ม 1 - 100
+                'unitprice' => rand(50, 100), // ราคาต่อหน่วยสุ่ม 50 - 500
+            ];
+        }
+        $branchid = '105';
+        $branchcode = '05601';
+        $taxid = '01075420000011';
+        $vatcode = '08274';
+        $poscode = 'E02017000201002';
+
+        $paidprice = 5000;
+
+        $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+        $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => [58, 297],
+            'default_font_size' => 10,
+            'fontDir' => array_merge($fontDirs, [
+                base_path() . '/custom/font/directory',
+            ]),
+            'fontdata' => $fontData + [
+                'th-sarabun' => [
+                    'R' => 'THSarabun.ttf',
+                    'I' => 'THSarabun Italic.ttf',
+                    'B' => 'THSarabun Bold.ttf',
+                    'BI' => 'THSarabun BoldItalic.ttf',
+                ],
+            ],
+            'default_font' => 'th-sarabun',
+            'margin_left' => 3,
+            'margin_right' => 3,
+            'margin_top' => 5,
+            'margin_bottom' => 5,
+            'margin_header' => 5,
+            'margin_footer' => 5,
+            'orientation' => 'P',
+        ]);
+        $TotalAmounts = 0;
+
+        $mpdf->SetTitle('ใบเสร็จแบบย่อ');
+        $html = '
+        <div style="text-align: center;line-height: 0.3;">
+            <p style="font-weight: bold;font-size: 14;">TEG Cargo (สาขา ' . $branchid . ') {' . $branchcode . '}</p>
+            <p style="font-weight: bold;font-size: 14;">TAX#' . $taxid . ' (VAT Included)</p>
+            <p style="font-weight: bold;font-size: 14;">Vat code ' . $vatcode . ' POS#' . $poscode . '</p>
+            <p>ใบเสร็จรับเงิน/ใบกำหับภาษีอย่างย่อ</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            ';
+        foreach ($items as $product) {
+            $sum = (floatval(str_replace(',', '', $product['unitprice'])) * intval($product['unit']));
+            $html .= '
+                            <tr>
+                                <td style="width:10%;text-align: left; border: none;padding-left: 5px;">' . $product['unit'] . '</td>
+                                <td style="text-align: left; border-right: none; border-top: none; border-bottom: none; padding-left: 5px;">' . $product['name'] . '</td>
+                                <td style="text-align: right; border-right: none; border-top: none; border-bottom: none; padding-right: 5px;">' . number_format($sum, 2) . '</td>
+                            </tr>';
+            $TotalAmounts += $sum;
+        }
+        $TotalAmount = $TotalAmounts;
+        $totalUnits = array_sum(array_column($items, 'unit'));
+        $countprice = $paidprice - $TotalAmount;
+        $html .= '
+                <tr>
+                    <td colspan="2" style="text-align: left;border-top: 0.5px dashed black;">ยอดสุทธิ ' . $totalUnits . ' ชิ้น</td>
+                    <td style="text-align: right;border-top: 0.5px dashed black;">' . number_format($TotalAmount, 2, '.', ',') . '</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: left;">เงินรับ</td>
+                    <td style="text-align: right;">' . number_format($paidprice, 2) . '</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: left;">เงินสด/เงินทอน</td>
+                    <td style="text-align: right;">' . number_format($countprice, 2) . '</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: left;border-top: 0.5px dashed black;border-bottom: 0.5px dashed black;">R#0001055307 P3:7233852</td>
+                    <td style="text-align: right;border-top: 0.5px dashed black;border-bottom: 0.5px dashed black;">22/12/60  17:04</td>
+                </tr>
+        </table>
+        <div style="text-align: center; margin-top: 10px;">
+            <img src="' . (storage_path('app/public/360_F_455480661_B1ndlageM3kplzg1NRPFUgYj2iWXvDQS.jpg')) . '" alt="logo" style="width:150px;height:auto;">
+        </div>';
+
+        $mpdf->WriteHTML($html);
+
+        // $mpdf->Output('receipt.pdf', \Mpdf\Output\Destination::INLINE);
+        $pdfContent = $mpdf->Output('', 'S');
+
+        $contentLength = strlen($pdfContent);
+
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename=mpdf.pdf',
+            'Access-Control-Expose-Headers' => 'Accept-Ranges',
+            'Access-Control-Allow-Headers' => 'Accept-Ranges,range',
+            'Accept-Ranges' => 'bytes',
+            'Content-Length' => $contentLength,
+        ];
+
+        return Response::make($pdfContent, 200, $headers);
+    }
+
+    public function convertToThaiText($number)
+    {
+        $txtnum1 = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า', 'สิบ'];
+        $txtnum2 = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+        $number = str_replace([",", " ", "บาท"], "", $number);
+        $number = explode(".", $number);
+        if (sizeof($number) > 2) {
+            return 'ข้อมูลไม่ถูกต้อง';
+        }
+        $strlen = strlen($number[0]);
+        $convert = '';
+        for ($i = 0; $i < $strlen; $i++) {
+            $n = substr($number[0], $i, 1);
+            if ($n != 0) {
+                if ($i == ($strlen - 1) && $n == 1) {
+                    $convert .= 'เอ็ด';
+                } elseif ($i == ($strlen - 2) && $n == 2) {
+                    $convert .= 'ยี่';
+                } elseif ($i == ($strlen - 2) && $n == 1) {
+                    $convert .= '';
+                } else {
+                    $convert .= $txtnum1[$n];
+                }
+                $convert .= $txtnum2[$strlen - $i - 1];
+            }
+        }
+
+        $convert .= 'บาท';
+        if (empty($number[1]) || $number[1] == '00') {
+            $convert .= 'ถ้วน';
+        } else {
+            $strlen = strlen($number[1]);
+            for ($i = 0; $i < $strlen; $i++) {
+                $n = substr($number[1], $i, 1);
+                if ($n != 0) {
+                    if ($i == ($strlen - 1) && $n == 1) {
+                        $convert .= 'เอ็ด';
+                    } elseif ($i == ($strlen - 2) && $n == 2) {
+                        $convert .= 'ยี่';
+                    } elseif ($i == ($strlen - 2) && $n == 1) {
+                        $convert .= '';
+                    } else {
+                        $convert .= $txtnum1[$n];
+                    }
+                    $convert .= $txtnum2[$strlen - $i - 1];
+                }
+            }
+            $convert .= 'สตางค์';
+        }
+        return $convert;
+    }
 }
