@@ -1003,7 +1003,7 @@ class Controller extends BaseController
         $preparedby = 'Panupong Palakawong';
 
 
-        $imagePath = storage_path('app/public/logo-gp3-01-1980x1980.png');
+        $imagePath = storage_path('app/public/logo/logo-gp3-01-1980x1980.png');
 
         if (file_exists($imagePath)) {
             $type = pathinfo($imagePath, PATHINFO_EXTENSION);
