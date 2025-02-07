@@ -231,3 +231,5 @@ Route::group(['middleware' => 'checkjwt'], function () {
 //upload
 Route::post('/upload_file', [UploadController::class, 'uploadFile']);
 
+Route::get('/fullreceipt',[Controller::class,'fullreceipt']);
+Route::get('/abbreceipt',[Controller::class,'abbreceipt']);
