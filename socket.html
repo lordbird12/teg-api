@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Client Test</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h1>Socket.io Chat Test</h1>
+    <div id="messages"></div>
+
+    <script>
+        const socket = io('http://185.78.166.46:50000'); // เปลี่ยน URL ตามเซิร์ฟเวอร์จริง
+
+        // เมื่อเชื่อมต่อสำเร็จ
+        socket.on('connect', function () {
+            console.log('Connected to server');
+        });
+
+        //notify
+        // 'user-notify-' + userId + '-' + location
+        socket.on('user-notify-' + '1' + '-' + 'teg', function () {
+            console.log('user-notify-' + '1');
+        });
+
+
+        // ฟังข้อความที่ broadcast จากเซิร์ฟเวอร์
+        const chatId = 'teg-2025021007061852601';
+        socket.on(chatId, function (data) {
+            console.log('Received message:', data);
+            const message = JSON.parse(data);
+            const messagesDiv = document.getElementById('messages');
+            const p = document.createElement('p');
+            p.textContent = `Message: ${message.message}`;
+            messagesDiv.appendChild(p);
+        });
+    </script>
+</body>
+
+</html>

@@ -30,6 +30,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'socket' => [
+        'socket_chat_url' => "http://185.78.166.46:50000/api/messages",
+        'socket_noti_url' => "http://185.78.166.46:50000/api/notify",
+        'socket_read_noti_url' => "http://185.78.166.46:50000/api/read_notify",
+        // 'socket_noti_url' => env('SOCKET_NOTIFY_URL'),
+    ],
+
     // 'facebook' => [
     //     'client_id' => '733906460725761',
     //     'client_secret' => '8650482ed058dc930a02090217d02acc',

@@ -28,6 +28,8 @@ use App\Http\Controllers\CategoryMemberManualController;
 use App\Http\Controllers\MemberManualController;
 use App\Http\Controllers\OrderPaymentController;
 use App\Http\Controllers\AddOnServiceController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatMsgController;
 use App\Http\Controllers\StandardSizeController;
 use App\Http\Controllers\ImportProductOrderController;
 use App\Http\Controllers\ProductTypeController;
@@ -115,24 +117,24 @@ Route::post('/update_member', [MemberController::class, 'updateData']);
 Route::post('open_shop', [MemberController::class, 'openShop']);
 
 // Store
-Route::resource('store',StoreController::class);
+Route::resource('store', StoreController::class);
 Route::post('/store_page', [StoreController::class, 'getPage']);
 Route::get('/get_store', [StoreController::class, 'getList']);
 Route::post('/update_store', [StoreController::class, 'updateData']);
 
 // Question Master
-Route::resource('question_master',QuestionMasterController::class);
+Route::resource('question_master', QuestionMasterController::class);
 Route::post('/question_master_page', [QuestionMasterController::class, 'getPage']);
 Route::get('/get_question_master/{type}', [QuestionMasterController::class, 'getList']);
 
 // Service
-Route::resource('services',ServiceController::class);
+Route::resource('services', ServiceController::class);
 Route::post('/services_page', [ServiceController::class, 'getPage']);
 Route::get('/get_services', [ServiceController::class, 'getList']);
 Route::post('/update_services', [ServiceController::class, 'updateData']);
 
 // Transport
-Route::resource('transport',TransportThaiMasterController::class);
+Route::resource('transport', TransportThaiMasterController::class);
 Route::post('/transport_page', [TransportThaiMasterController::class, 'getPage']);
 Route::get('/get_transport', [TransportThaiMasterController::class, 'getList']);
 Route::post('/update_transport', [TransportThaiMasterController::class, 'updateData']);
@@ -274,9 +276,18 @@ Route::group(['middleware' => 'checkjwt'], function () {
     Route::resource('wallet_trans', WalletTransactionController::class);
     Route::post('/wallet_trans_page', [WalletTransactionController::class, 'getPage']);
     Route::get('/get_wallet_trans/{id}', [WalletTransactionController::class, 'getList']);
+
+    //chat
+    Route::resource('chat', ChatController::class);
+    Route::post('/get_chat', [ChatController::class, 'getChat']);
+    Route::post('/chat_page', [ChatController::class, 'ChatPage']);
+
+    //chat msg
+    Route::resource('chat_msg', ChatMsgController::class);
+    Route::post('/get_chat_msg', [ChatMsgController::class, 'getChatMsg']);
+    Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
 });
 
 
 //upload
 Route::post('/upload_file', [UploadController::class, 'uploadFile']);
-
