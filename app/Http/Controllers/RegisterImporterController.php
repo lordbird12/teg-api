@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RegisterImporter;
+use App\Models\member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,8 @@ class RegisterImporterController extends Controller
                 if ($Item[$i]['logo_file']) {
                     $Item[$i]['logo_file'] = url($Item[$i]['logo_file']);
                 }
+                $Item[$i]['member'] = member::find($Item[$i]['member_id']);
+
             }
         }
 
@@ -50,8 +53,8 @@ class RegisterImporterController extends Controller
         $page = $start / $length + 1;
 
 
-        $col = ['id', 'comp_name', 'comp_tax', 'registered', 'address', 'province', 'district', 'sub_district', 'postal_code', 'authorized_person', 'authorized_person_phone', 'authorized_person_email', 'id_card_picture', 'certificate_book_file', 'tax_book_file', 'logo_file', 'created_at', 'updated_at'];
-        $orderby = ['', 'comp_name', 'comp_tax', 'registered', 'address', 'province', 'district', 'sub_district', 'postal_code', 'authorized_person', 'authorized_person_phone', 'authorized_person_email', 'id_card_picture', 'certificate_book_file', 'tax_book_file', 'logo_file', 'created_at', 'updated_at'];
+        $col = ['id','member_id', 'comp_name', 'comp_tax', 'registered', 'address', 'province', 'district', 'sub_district', 'postal_code', 'authorized_person', 'authorized_person_phone', 'authorized_person_email', 'id_card_picture', 'certificate_book_file', 'tax_book_file', 'logo_file', 'created_at', 'updated_at'];
+        $orderby = ['','member_id', 'comp_name', 'comp_tax', 'registered', 'address', 'province', 'district', 'sub_district', 'postal_code', 'authorized_person', 'authorized_person_phone', 'authorized_person_email', 'id_card_picture', 'certificate_book_file', 'tax_book_file', 'logo_file', 'created_at', 'updated_at'];
 
         $D = RegisterImporter::select($col);
 
@@ -77,6 +80,7 @@ class RegisterImporterController extends Controller
                 if ($d[$i]->image) {
                     $d[$i]->image = url($d[$i]->image);
                 }
+                $d[$i]->member = member::find($d[$i]->member_id);
             }
         }
 
@@ -136,6 +140,7 @@ class RegisterImporterController extends Controller
 
         try {
             $Item = new RegisterImporter();
+            $Item->member_id = $request->member_id;
             $Item->comp_name = $request->comp_name;
             $Item->comp_tax = $request->comp_tax;
             $Item->registered = $request->registered;
@@ -185,7 +190,7 @@ class RegisterImporterController extends Controller
             if ($Item->logo_file) {
                 $Item->logo_file = url($Item->logo_file);
             }
-          
+            $Item->member = member::find($Item->member_id);
         }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);

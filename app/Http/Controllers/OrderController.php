@@ -38,21 +38,35 @@ class OrderController extends Controller
 
     public function getListByStatus($id)
     {
-        
-        $itemsGrouped = Order::where('member_id',$id)->get()->groupBy('status');
+        // Define all possible statuses
+        $statuses = ['awaiting_summary','awaiting_payment','in_progress','preparing_shipment','shipped','cancelled'];
+
+        // Get orders for the member
+        $Orders = Order::where('member_id', $id)->get();
+
+        $orderIds = [];
+        foreach ($Orders as $order) {
+            $orderIds[] = $order->id;
+        }
+
+        // Group delivery orders by status
+        $itemsGrouped = Order::whereIn('id', $orderIds)->get()->groupBy('status');
+
         $result = [];
 
-        foreach ($itemsGrouped as $status => $items) {
+        foreach ($statuses as $status) {
             $group = [
                 'status' => $status,
                 'orders' => []
             ];
 
-            foreach ($items as $item) {
-                $order = $item->toArray();
-                $order['member'] = member::find($item->member_id);
-                $order['order_lists'] = OrderList::where('order_id', $item->id)->get();
-                $group['orders'][] = $order;
+            if (isset($itemsGrouped[$status])) {
+                foreach ($itemsGrouped[$status] as $item) {
+                    $order = $item->toArray();
+                    $order['member'] = member::find($item->member_id);
+                    $order['order_lists'] = OrderList::where('order_id', $item->id)->get();
+                    $group['orders'][] = $order;
+                }
             }
 
             $result[] = $group;
@@ -60,6 +74,31 @@ class OrderController extends Controller
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $result);
     }
+
+    // public function getListByStatus($id)
+    // {
+        
+    //     $itemsGrouped = Order::where('member_id',$id)->get()->groupBy('status');
+    //     $result = [];
+
+    //     foreach ($itemsGrouped as $status => $items) {
+    //         $group = [
+    //             'status' => $status,
+    //             'orders' => []
+    //         ];
+
+    //         foreach ($items as $item) {
+    //             $order = $item->toArray();
+    //             $order['member'] = member::find($item->member_id);
+    //             $order['order_lists'] = OrderList::where('order_id', $item->id)->get();
+    //             $group['orders'][] = $order;
+    //         }
+
+    //         $result[] = $group;
+    //     }
+
+    //     return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $result);
+    // }
 
     public function getPage(Request $request)
     {

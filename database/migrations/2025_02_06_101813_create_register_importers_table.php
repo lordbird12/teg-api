@@ -15,6 +15,7 @@ class CreateRegisterImportersTable extends Migration
     {
         Schema::create('register_importers', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('member_id')->nullable();
             $table->string('comp_name');
             $table->string('comp_tax')->unique();
             $table->boolean('registered')->default(false);
