@@ -89,10 +89,6 @@ class ChatController extends Controller
             $d->where('member_id', $memberId);
         }
 
-        if (isset($assetId)) {
-            $d->where('asset_id', $assetId);
-        }
-
         if (isset($type)) {
             $d->where('type', $type);
         }
@@ -178,7 +174,7 @@ class ChatController extends Controller
 
                 $Chat = new Chat();
 
-                $Chat->room_name = date('Ymdhis') . rand(0000, 9999) . $loginBy->code;
+                $Chat->room_name = date('Ymdhis') . rand(0000, 9999) . $loginBy->id;
                 $Chat->member_id = $loginBy->id;
                 $Chat->type = 'vip';
                 $Chat->updated_at = Carbon::now()->toDateTimeString();
@@ -237,7 +233,7 @@ class ChatController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '. $e, 404);
         }
     }
 

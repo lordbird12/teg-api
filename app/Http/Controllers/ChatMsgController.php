@@ -7,6 +7,7 @@ use App\Models\Chat_msg;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ChatMsgController extends Controller
 {
@@ -237,6 +238,23 @@ class ChatMsgController extends Controller
 
             $Chat_msg->save();
 
+
+            $socketURL = config('services.socket.socket_chat_url');
+
+
+            // ส่งข้อความไปยัง API
+            $messageData = [
+                'message' => $request->message,
+                'chatId' => $Chat->room_name,
+                'messagePosition' => $request->message_position,
+                'location' => 'teg'
+            ];
+
+            $response = Http::post($socketURL, $messageData);
+            // ส่งข้อความแจ้งเตือนผ่าน Socket.io (ใช้ broadcasting ใน Laravel)
+            broadcast(new \App\Events\MessageSent($messageData))->toOthers();
+            //
+
             DB::commit();
 
             return $this->returnSuccess('ดำเนินการสำเร็จ', $Chat_msg);
@@ -244,7 +262,7 @@ class ChatMsgController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
 

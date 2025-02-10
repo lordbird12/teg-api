@@ -86,6 +86,8 @@ class LoginController extends Controller
 
         if ($user) {
 
+            $user->type = 'user';
+
             //log
             $username = $user->username;
             $log_type = 'เข้าสู่ระบบ';
@@ -142,7 +144,7 @@ class LoginController extends Controller
                     $device->status =  true;
                     $device->save();
                 } else {
-                  
+
                     //update
                     $deviceIsExist->user_id =  $user->id;
                     $deviceIsExist->device_no =  $deviceNo;
@@ -155,6 +157,9 @@ class LoginController extends Controller
             }
 
             if($user){
+
+                $user->type = 'member';
+
                 $title = 'แจ้ง Member';
                 $body = "มีการเข้าสู่ระบบ";
                 $target_id = $user->id;
@@ -213,7 +218,7 @@ class LoginController extends Controller
                     $device->status =  true;
                     $device->save();
                 } else {
-                  
+
                     //update
                     $deviceIsExist->user_id =  $user->id;
                     $deviceIsExist->device_no =  $deviceNo;

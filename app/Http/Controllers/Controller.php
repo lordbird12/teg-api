@@ -198,6 +198,16 @@ class Controller extends BaseController
         }
     }
 
+    public function isURL($url)
+    {
+        $url = filter_var($url, FILTER_SANITIZE_URL);
+        if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     // public function uploadFile($file)
     // {
         // $input['filename'] = time() . '.' . $file->extension();
@@ -832,14 +842,14 @@ class Controller extends BaseController
         try {
             // Fetch all devices
             $devices = Device::whereNotNull('notify_token')->pluck('notify_token', 'user_id')->toArray();
-    
+
             if (empty($devices)) {
                 return response()->json(['status' => 'error', 'message' => 'No devices found'], 404);
             }
-    
+
             // Extract unique FCM tokens
             $FcmTokens = array_values(array_unique($devices));
-    
+
             // echo $FcmTokens;
             // exit;
             // Prepare notifications
@@ -860,13 +870,13 @@ class Controller extends BaseController
                 'ios_badgeType' => 'Increase',
                 'ios_badgeCount' => 1,
             ];
-  
+
             // Send notification
             $response = OneSignal::sendNotificationCustom($params);
-          
+
             // Log notification if needed
             // $this->addNotifyLog($title, $body, $target_id, $type, array_keys($devices));
-    
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Notification sent successfully',
@@ -957,7 +967,7 @@ class Controller extends BaseController
         $totalIn = DB::table('wallet_transactions')->where('type', 'I')->where('member_id',$member_id)->sum('amount');
         $totalOut = DB::table('wallet_transactions')->where('type', 'O')->where('member_id',$member_id)->sum('amount');
         $netBalance = $totalIn - $totalOut;
-        
+
         return $netBalance;
     }
 

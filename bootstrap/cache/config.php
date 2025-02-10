@@ -251,6 +251,97 @@
     'max_age' => 0,
     'supports_credentials' => false,
   ),
+  'database' => 
+  array (
+    'default' => 'mysql',
+    'connections' => 
+    array (
+      'sqlite' => 
+      array (
+        'driver' => 'sqlite',
+        'url' => NULL,
+        'database' => 'db_teg',
+        'prefix' => '',
+        'foreign_key_constraints' => true,
+      ),
+      'mysql' => 
+      array (
+        'driver' => 'mysql',
+        'url' => NULL,
+        'host' => '185.78.166.46',
+        'port' => '3306',
+        'database' => 'db_teg',
+        'username' => 'admin',
+        'password' => 'i@Passw0rd',
+        'unix_socket' => '',
+        'charset' => 'utf8mb4',
+        'collation' => 'utf8mb4_unicode_ci',
+        'prefix' => '',
+        'prefix_indexes' => true,
+        'strict' => true,
+        'engine' => NULL,
+        'options' => 
+        array (
+        ),
+      ),
+      'pgsql' => 
+      array (
+        'driver' => 'pgsql',
+        'url' => NULL,
+        'host' => '185.78.166.46',
+        'port' => '3306',
+        'database' => 'db_teg',
+        'username' => 'admin',
+        'password' => 'i@Passw0rd',
+        'charset' => 'utf8',
+        'prefix' => '',
+        'prefix_indexes' => true,
+        'search_path' => 'public',
+        'sslmode' => 'prefer',
+      ),
+      'sqlsrv' => 
+      array (
+        'driver' => 'sqlsrv',
+        'url' => NULL,
+        'host' => '185.78.166.46',
+        'port' => '3306',
+        'database' => 'db_teg',
+        'username' => 'admin',
+        'password' => 'i@Passw0rd',
+        'charset' => 'utf8',
+        'prefix' => '',
+        'prefix_indexes' => true,
+      ),
+    ),
+    'migrations' => 'migrations',
+    'redis' => 
+    array (
+      'client' => 'phpredis',
+      'options' => 
+      array (
+        'cluster' => 'redis',
+        'prefix' => 'laravel_database_',
+      ),
+      'default' => 
+      array (
+        'url' => NULL,
+        'host' => '127.0.0.1',
+        'username' => NULL,
+        'password' => NULL,
+        'port' => '6379',
+        'database' => '0',
+      ),
+      'cache' => 
+      array (
+        'url' => NULL,
+        'host' => '127.0.0.1',
+        'username' => NULL,
+        'password' => NULL,
+        'port' => '6379',
+        'database' => '1',
+      ),
+    ),
+  ),
   'excel' => 
   array (
     'exports' => 
@@ -634,6 +725,12 @@
       'key' => '',
       'secret' => '',
       'region' => 'us-east-1',
+    ),
+    'socket' => 
+    array (
+      'socket_chat_url' => 'http://185.78.166.46:50000/api/messages',
+      'socket_noti_url' => 'http://185.78.166.46:50000/api/notify',
+      'socket_read_noti_url' => 'http://185.78.166.46:50000/api/read_notify',
     ),
   ),
   'session' => 
