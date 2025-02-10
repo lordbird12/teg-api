@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\OrderList;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderList;
+use App\Models\DeliveryOrderTracking;
+use App\Models\DeliveryOrderAddOnServices;
 use App\Models\Products;
 use App\Models\User;
 use App\Models\member;
@@ -38,29 +40,53 @@ class DeliveryOrderController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
+    public function getListAll($id)
+    {
+        $Item = DeliveryOrder::where('member_id',$id)->get()->toarray();
+
+        if (!empty($Item)) {
+
+            for ($i = 0; $i < count($Item); $i++) {
+                $Item[$i]['No'] = $i + 1;
+                $Item[$i]['member'] = member::find($Item[$i]['member_id']);
+                $Item[$i]['delivery_order_lists'] = DeliveryOrderList::where('delivery_order_id', $Item[$i]['id'])->get();
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
+
     public function getListByStatus($id)
     {
-        $Orders = Order::where('member_id',$id)->get();
+        // Define all possible statuses
+        $statuses = ['arrived_china_warehouse', 'in_transit', 'arrived_thailand_warehouse', 'awaiting_payment', 'delivered'];
+
+        // Get orders for the member
+        $Orders = DeliveryOrder::where('member_id', $id)->get();
 
         $orderIds = [];
         foreach ($Orders as $order) {
             $orderIds[] = $order->id;
         }
- 
-        $itemsGrouped = DeliveryOrder::whereIn('order_id',$orderIds)->get()->groupBy('status');
+
+        // Group delivery orders by status
+        $itemsGrouped = DeliveryOrder::whereIn('id', $orderIds)->get()->groupBy('status');
+
         $result = [];
 
-        foreach ($itemsGrouped as $status => $items) {
+        foreach ($statuses as $status) {
             $group = [
                 'status' => $status,
                 'delivery_orders' => []
             ];
 
-            foreach ($items as $item) {
-                $order = $item->toArray();
-                $order['member'] = member::find($item->member_id);
-                $order['delivery_order_lists'] = DeliveryOrderList::where('delivery_order_id', $item->id)->get();
-                $group['delivery_orders'][] = $order;
+            if (isset($itemsGrouped[$status])) {
+                foreach ($itemsGrouped[$status] as $item) {
+                    $order = $item->toArray();
+                    $order['member'] = member::find($item->member_id);
+                    $order['delivery_order_lists'] = DeliveryOrderList::where('delivery_order_id', $item->id)->get();
+                    $group['delivery_orders'][] = $order;
+                }
             }
 
             $result[] = $group;
@@ -81,9 +107,9 @@ class DeliveryOrderController extends Controller
         $status = $request->status;
 
 
-        $col = array('id', 'code', 'date', 'order_id','track_no','driver_name','driver_phone','note','status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id', 'code', 'date','member_id', 'order_id','driver_name','driver_phone','note','status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
-        $orderby = array('', 'code', 'date', 'order_id','track_no','driver_name','driver_phone','note','status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $orderby = array('', 'code', 'date', 'member_id','order_id','driver_name','driver_phone','note','status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $D = DeliveryOrder::select($col);
 
@@ -132,13 +158,18 @@ class DeliveryOrderController extends Controller
                 if($d[$i]->order){
                     $d[$i]->order->order_lists = OrderList::where('order_id',$d[$i]->order_id)->get();
                 }
-                $d[$i]->delivery_order_lists = DeliveryOrderList::where('delivery_order_id', $d[$i]->id)->get();
-                foreach ($d[$i]->delivery_order_lists as $key => $value) {
-                    $d[$i]->delivery_order_lists[$key]->standard_size = StandardSize::find($value['standard_size_id']);
-                    $d[$i]->delivery_order_lists[$key]->images = DeliveryOrderListImages::where('delivery_order_list_id',$value['id'])
-                    ->get();
+                $d[$i]->delivery_order_tracks = DeliveryOrderTracking::where('delivery_order_id', $d[$i]->id)->get();
+
+                foreach ($d[$i]->delivery_order_tracks as $key => $value) {
+                    $d[$i]->delivery_order_tracks[$key]->delivery_order_lists = DeliveryOrderList::where('delivery_order_id', $d[$i]->id)->where('delivery_order_tracking_id', $value['id'])->get();
+                    foreach ($d[$i]->delivery_order_tracks[$key]->delivery_order_lists as $key2 => $value2) {
+                        $d[$i]->delivery_order_tracks[$key]->delivery_order_lists[$key2]->standard_size = StandardSize::find($value['standard_size_id']);
+                        $d[$i]->delivery_order_tracks[$key]->delivery_order_lists[$key2]->images = DeliveryOrderListImages::where('delivery_order_list_id',$value['id'])
+                        ->get();
+                    }
                 }
-                // $d[$i]->member = member::find($d[$i]->member_id);
+                
+                $d[$i]->member = member::find($d[$i]->member_id);
 
             }
         }
@@ -183,9 +214,9 @@ class DeliveryOrderController extends Controller
             // Create a new DeliveryOrder record
             $deliveryOrder = new DeliveryOrder();
             $deliveryOrder->code = $id;
+            $deliveryOrder->member_id = $request->member_id;
             $deliveryOrder->order_id = $request->order_id;
             $deliveryOrder->date = $request->date;
-            $deliveryOrder->track_no = $request->track_no;
             $deliveryOrder->driver_name = $request->driver_name;
             $deliveryOrder->driver_phone = $request->driver_phone;
             $deliveryOrder->note = $request->note;
@@ -194,29 +225,54 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->save();
 
             // Add delivery order lists
-            foreach ($request->lists as $list) {
-                $deliveryOrderList = new DeliveryOrderList();
-                $deliveryOrderList->delivery_order_id = $deliveryOrder->id;
-                $deliveryOrderList->standard_size_id = $list['standard_size_id'];
-                $deliveryOrderList->weight = $list['weight'];
-                $deliveryOrderList->width = $list['width'];
-                $deliveryOrderList->height = $list['height'];
-                $deliveryOrderList->long = $list['long'];
-                $deliveryOrderList->qty = $list['qty'];
-                $deliveryOrderList->create_by = $request->create_by;
-                $deliveryOrderList->save();
+            foreach ($request->tracks as $track) {
+                $deliveryOrderTrack = new DeliveryOrderTracking();
+                $deliveryOrderTrack->delivery_order_id = $deliveryOrder->id;
+                $deliveryOrderTrack->track_id = $track['track_id'];
+                $deliveryOrderTrack->track_no = $track['track_no'];
+                $deliveryOrderTrack->save();
 
-                // Add images for each delivery order list
-                if (isset($list['images']) && is_array($list['images'])) {
-                    foreach ($list['images'] as $image) {
-                        $deliveryOrderListImage = new DeliveryOrderListImages();
-                        $deliveryOrderListImage->delivery_order_list_id = $deliveryOrderList->id;
-                        $deliveryOrderListImage->image_url = $image['image_url'];
-                        $deliveryOrderListImage->image = $image['image'];
-                        $deliveryOrderListImage->create_by = $request->create_by;
-                        $deliveryOrderListImage->save();
+                if($deliveryOrderTrack){
+                    foreach ($track['add_on_services'] as $add_on_service) {
+                        $deliveryOrderAddOnService = new DeliveryOrderAddOnServices();
+                        $deliveryOrderAddOnService->delivery_order_tk_id = $deliveryOrderTrack->id;
+                        $deliveryOrderAddOnService->delivery_order_id = $deliveryOrder->id;
+                        $deliveryOrderAddOnService->add_on_service_id = $add_on_service['add_on_service_id'];
+                        $deliveryOrderAddOnService->price = $add_on_service['price'];
+                        $deliveryOrderAddOnService->save();
                     }
+                  
+                    foreach ($track['lists'] as $list) {
+                        $deliveryOrderList = new DeliveryOrderList();
+                        $deliveryOrderList->delivery_order_tracking_id = $deliveryOrderTrack->id;
+                        $deliveryOrderList->delivery_order_id = $deliveryOrder->id;
+                        $deliveryOrderList->product_type_id = $list['product_type_id'];
+                        $deliveryOrderList->product_name = $list['product_name'];
+                        $deliveryOrderList->product_image = $list['product_image'];
+                        $deliveryOrderList->standard_size_id = $list['standard_size_id'];
+                        $deliveryOrderList->weight = $list['weight'];
+                        $deliveryOrderList->width = $list['width'];
+                        $deliveryOrderList->height = $list['height'];
+                        $deliveryOrderList->long = $list['long'];
+                        $deliveryOrderList->qty = $list['qty'];
+                        $deliveryOrderList->create_by = $request->create_by;
+                        $deliveryOrderList->save();
+        
+                        // Add images for each delivery order list
+                        if (isset($list['images']) && is_array($list['images'])) {
+                            foreach ($list['images'] as $image) {
+                                $deliveryOrderListImage = new DeliveryOrderListImages();
+                                $deliveryOrderListImage->delivery_order_list_id = $deliveryOrderList->id;
+                                $deliveryOrderListImage->image_url = $image['image_url'];
+                                $deliveryOrderListImage->image = $image['image'];
+                                $deliveryOrderListImage->create_by = $request->create_by;
+                                $deliveryOrderListImage->save();
+                            }
+                        }
+                    }
+                    
                 }
+                
             }
 
             DB::commit();
@@ -258,20 +314,16 @@ class DeliveryOrderController extends Controller
                     ->get();
                 }
             }
-            $Item->delivery_order_lists = DeliveryOrderList::where('delivery_order_id', $id)->get();
-            foreach ($Item->delivery_order_lists as $key => $value) {
-                $Item->delivery_order_lists[$key]->standard_size = StandardSize::find($value['standard_size_id']);
-                $Item->delivery_order_lists[$key]->images = DeliveryOrderListImages::where('delivery_order_list_id',$value['id'])
-                ->get();
-                // foreach ($Item->order_lists[$key]->add_on_services  as $key2 => $value2) {
-                //     $Item->order_lists[$key]->add_on_services[$key2]->add_on_service = AddOnService::find($value2['add_on_service_id']);
-                // }
+            $Item->delivery_order_tracks = DeliveryOrderTracking::where('delivery_order_id', $id)->get();
 
-                // $Item->order_lists[$key]->options = OrderOption::where('order_id',$Item->id)
-                // ->where('order_list_id',$value['id'])
-                // ->get();
-            }
-           
+            foreach ($Item->delivery_order_tracks as $key => $value) {
+                $Item->delivery_order_tracks[$key]->delivery_order_lists = DeliveryOrderList::where('delivery_order_id', $id)->get();
+                foreach ($Item->delivery_order_tracks[$key]->delivery_order_lists as $key2 => $value2) {
+                    $Item->delivery_order_tracks[$key]->delivery_order_lists[$key2]->standard_size = StandardSize::find($value2['standard_size_id']);
+                    $Item->delivery_order_tracks[$key]->delivery_order_lists[$key2]->images = DeliveryOrderListImages::where('delivery_order_list_id',$value2['id'])
+                    ->get();
+                }
+            }           
         }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);

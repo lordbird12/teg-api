@@ -31,6 +31,14 @@ use App\Http\Controllers\AddOnServiceController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatMsgController;
 use App\Http\Controllers\StandardSizeController;
+use App\Http\Controllers\ImportProductOrderController;
+use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\TrackListController;
+use App\Http\Controllers\ProductDraftController;
+use App\Http\Controllers\ProblemReportController;
+use App\Http\Controllers\ProblemReportMasterController;
+use App\Http\Controllers\ProblemReportTopicController;
+use App\Http\Controllers\AboutUsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -179,6 +187,7 @@ Route::post('/delivery_orders_page', [DeliveryOrderController::class, 'getPage']
 Route::get('/get_delivery_orders', [DeliveryOrderController::class, 'getList']);
 Route::post('/update_status_delivery_orders', [DeliveryOrderController::class, 'updateStatus']);
 Route::get('/get_delivery_orders_by_member/{id}', [DeliveryOrderController::class, 'getListByStatus']);
+Route::get('/get_delivery_all_orders_by_member/{id}', [DeliveryOrderController::class, 'getListAll']);
 
 // Register Importer
 Route::resource('register_importer', RegisterImporterController::class);
@@ -197,7 +206,7 @@ Route::post('/manual_page', [MemberManualController::class, 'getPage']);
 Route::get('/get_manual', [MemberManualController::class, 'getList']);
 Route::post('/update_manual', [MemberManualController::class, 'updateData']);
 
-// Manual
+// Add on service
 Route::resource('add_on_services', AddOnServiceController::class);
 Route::post('/add_on_services_page', [AddOnServiceController::class, 'getPage']);
 Route::get('/get_add_on_services', [AddOnServiceController::class, 'getList']);
@@ -213,6 +222,46 @@ Route::post('/update_payment_order', [OrderPaymentController::class, 'updateData
 Route::resource('standard_size', StandardSizeController::class);
 Route::post('/standard_size_page', [StandardSizeController::class, 'getPage']);
 Route::get('/get_standard_size', [StandardSizeController::class, 'getList']);
+
+// Product Type
+Route::resource('product_type', ProductTypeController::class);
+Route::post('/product_type_page', [ProductTypeController::class, 'getPage']);
+Route::get('/get_product_type', [ProductTypeController::class, 'getList']);
+
+// Tracking
+Route::resource('tracking', TrackListController::class);
+Route::post('/tracking_page', [TrackListController::class, 'getPage']);
+Route::get('/get_tracking', [TrackListController::class, 'getList']);
+
+// Product Draft
+Route::resource('product_draft', ProductDraftController::class);
+Route::post('/product_draft_page', [ProductDraftController::class, 'getPage']);
+Route::get('/get_product_draft', [ProductDraftController::class, 'getList']);
+
+// Report Problem
+Route::resource('problem_report', ProblemReportController::class);
+Route::post('/problem_report_page', [ProblemReportController::class, 'getPage']);
+Route::get('/get_problem_report/{id}', [ProblemReportController::class, 'getList']);
+
+// Report Problem Topic
+Route::resource('problem_report_master', ProblemReportMasterController::class);
+Route::post('/problem_report_master_page', [ProblemReportMasterController::class, 'getPage']);
+Route::get('/get_problem_report_master', [ProblemReportMasterController::class, 'getList']);
+
+// Report Problem Master
+Route::resource('problem_report_topic', ProblemReportTopicController::class);
+Route::post('/problem_report_topic_page', [ProblemReportTopicController::class, 'getPage']);
+Route::get('/get_problem_report_topic', [ProblemReportTopicController::class, 'getList']);
+
+// About us
+Route::resource('about_us', AboutUsController::class);
+Route::get('/get_about_us', [AboutUsController::class, 'getList']);
+
+//Import Order
+Route::resource('import_product_order', ImportProductOrderController::class);
+Route::post('/import_product_order_page', [ImportProductOrderController::class, 'getPage']);
+Route::get('/get_import_product_order', [ImportProductOrderController::class, 'getList']);
+Route::post('/update_import_product_order', [ImportProductOrderController::class, 'updateData']);
 
 Route::put('/update_password_user/{id}', [UserController::class, 'updatePasswordUser']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,6 +7,7 @@ use App\Models\MemberDetailUser;
 use App\Models\MemberDetailCompany;
 use App\Models\MemberDetailAgent;
 use App\Models\MemberAddress;
+use App\Models\RegisterImporter;
 use App\Models\shop;
 use Carbon\Carbon;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
@@ -241,6 +242,8 @@ class MemberController extends Controller
                 $ItemAddress->save();
 
                 $Item->shipping_address = $ItemAddress;
+
+                $Item->register_importer = RegisterImporter::where('member_id',$id)->first();
 
             }
 

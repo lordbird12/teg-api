@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMemberPointsTable extends Migration
+class CreateProductTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,22 +13,12 @@ class CreateMemberPointsTable extends Migration
      */
     public function up()
     {
-        Schema::create('member_points', function (Blueprint $table) {
+        Schema::create('product_types', function (Blueprint $table) {
             $table->increments('id');
             $table->string('code', 50)->charset('utf8')->nullable();
 
-            $table->integer('member_id')->unsigned()->index();
-            $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
-
-            $table->string('in_from')->nullable();
-            $table->string('out_to')->nullable();
-
-            $table->integer('reference_id')->nullable();
-
-            $table->string('detail')->nullable();
-            $table->integer('amount')->default(0);
-
-            $table->enum('type', ['I', 'O'])->charset('utf8')->default('I');
+            $table->text('name')->charset('utf8');
+            $table->text('description')->nullable()->charset('utf8');
 
             $table->enum('status', ['Yes', 'No','Request'])->charset('utf8')->default('Request');
 
@@ -47,6 +37,6 @@ class CreateMemberPointsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('member_points');
+        Schema::dropIfExists('product_types');
     }
 }
