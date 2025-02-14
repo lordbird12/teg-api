@@ -39,6 +39,7 @@ use App\Http\Controllers\ProblemReportController;
 use App\Http\Controllers\ProblemReportMasterController;
 use App\Http\Controllers\ProblemReportTopicController;
 use App\Http\Controllers\AboutUsController;
+use App\Http\Controllers\ImportPOController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -262,6 +263,11 @@ Route::resource('import_product_order', ImportProductOrderController::class);
 Route::post('/import_product_order_page', [ImportProductOrderController::class, 'getPage']);
 Route::get('/get_import_product_order', [ImportProductOrderController::class, 'getList']);
 Route::post('/update_import_product_order', [ImportProductOrderController::class, 'updateData']);
+
+// Import PO
+Route::resource('import_po', ProblemReportController::class);
+Route::post('/import_po_page', [ProblemReportController::class, 'getPage']);
+Route::get('/get_import_po/{id}', [ProblemReportController::class, 'getList']);
 
 Route::put('/update_password_user/{id}', [UserController::class, 'updatePasswordUser']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
