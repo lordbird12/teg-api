@@ -3,19 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\ImportPO;
+use App\Models\ImportProductOrder;
+use App\Models\Order;
+use App\Models\OrderList;
+use App\Models\DeliveryOrder;
+use App\Models\DeliveryOrderList;
+use App\Models\DeliveryOrderTracking;
+use App\Models\DeliveryOrderAddOnServices;
+use App\Models\member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 class ImportPOController extends Controller
 {
-    public function getList()
+    public function getList($id)
     {
-        $items = ImportPO::all()->toArray();
+        $items = ImportProductOrder::where('member_id',$id)->get()->toArray();
 
         if (!empty($items)) {
             foreach ($items as $key => $item) {
                 $items[$key]['No'] = $key + 1;
+                $items[$key]['delivery_orders'] = DeliveryOrder::find($items[$key]['delivery_order_id']);
+                if($items[$key]['delivery_orders']){
+                    $items[$key]['delivery_orders']['track'] = DeliveryOrderTracking::where('delivery_order_id',$items[$key]['delivery_orders']['id'])->first();
+                    $items[$key]['delivery_orders']['order'] = Order::find($items[$key]['delivery_orders']['order_id']);
+                    if($items[$key]['delivery_orders']['track']){
+                        $items[$key]['delivery_orders']['track']['delivery_order_lists'] = DeliveryOrderList::where('delivery_order_id',$items[$key]['delivery_order_id'])->where('delivery_order_tracking_id',$items[$key]['delivery_orders']['track']['id'])->get();
+                    }
+                }
             }
         }
 
@@ -34,7 +50,7 @@ class ImportPOController extends Controller
         $col = ['id', 'member_id', 'delivery_order_id', 'created_at', 'updated_at'];
         $orderby = ['', 'member_id','delivery_order_id', 'created_at', 'updated_at'];
 
-        $query = ImportPO::select($col);
+        $query = ImportProductOrder::select($col);
 
         if ($orderby[$order[0]['column']] ?? false) {
             $query->orderBy($orderby[$order[0]['column']], $order[0]['dir']);
@@ -76,7 +92,7 @@ class ImportPOController extends Controller
 
         try {
             foreach ($request->delivery_orders as $key => $value) {
-                $importPO = new ImportPO();
+                $importPO = new ImportProductOrder();
                 $importPO->member_id = $request->member_id;
                 $importPO->delivery_order_id = $value;
                 $importPO->save();
@@ -94,7 +110,7 @@ class ImportPOController extends Controller
 
     public function show($id)
     {
-        $item = ImportPO::find($id);
+        $item = ImportProductOrder::find($id);
 
         if (!$item) {
             return $this->returnErrorData('ไม่พบข้อมูล', 404);
@@ -118,7 +134,7 @@ class ImportPOController extends Controller
         DB::beginTransaction();
 
         try {
-            $importPO = ImportPO::find($id);
+            $importPO = ImportProductOrder::find($id);
 
             if (!$importPO) {
                 return $this->returnErrorData('ไม่พบข้อมูล', 404);
@@ -142,7 +158,7 @@ class ImportPOController extends Controller
         DB::beginTransaction();
 
         try {
-            $importPO = ImportPO::find($id);
+            $importPO = ImportProductOrder::find($id);
 
             if (!$importPO) {
                 return $this->returnErrorData('ไม่พบข้อมูล', 404);

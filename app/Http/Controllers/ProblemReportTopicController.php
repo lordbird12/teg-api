@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ProblemReportTopic;
 use App\Models\ProblemReportMaster;
+use App\Models\ProblemReport;
 use Carbon\Carbon;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
@@ -21,6 +22,27 @@ class ProblemReportTopicController extends Controller
             for ($i = 0; $i < count($Item); $i++) {
                 $Item[$i]['No'] = $i + 1;
                 $Item[$i]['problem_report_masters'] = ProblemReportMaster::where('problem_report_topic_id',$Item[$i]['id'])->get();
+                foreach ($Item[$i]['problem_report_masters'] as $key => $value) {
+                    $Item[$i]['problem_report_masters'][$key]['problem_reports'] = ProblemReport::where('problem_report_topic_id',$Item[$i]['id'])->where('problem_report_master_id',$value['id'])->get();
+                }
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
+
+    public function getListByMember($id)
+    {
+        $Item = ProblemReportTopic::get()->toarray();
+
+        if (!empty($Item)) {
+
+            for ($i = 0; $i < count($Item); $i++) {
+                $Item[$i]['No'] = $i + 1;
+                $Item[$i]['problem_report_masters'] = ProblemReportMaster::where('problem_report_topic_id',$Item[$i]['id'])->get();
+                foreach ($Item[$i]['problem_report_masters'] as $key => $value) {
+                    $Item[$i]['problem_report_masters'][$key]['problem_reports'] = ProblemReport::where('problem_report_topic_id',$Item[$i]['id'])->where('problem_report_master_id',$value['id'])->where('member_id',$id)->get();
+                }
             }
         }
 
@@ -37,12 +59,18 @@ class ProblemReportTopicController extends Controller
         $page = $start / $length + 1;
 
         $Status = $request->status;
+        $problem_report_topic_id = $request->problem_report_topic_id;
+        $member_id = $request->member_id;
 
         $col = array('id', 'code', 'name', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $orderby = array('', 'code', 'name', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $D = ProblemReportTopic::select($col);
+
+        if (isset($problem_report_topic_id)) {
+            $D->where('id', $problem_report_topic_id);
+        }
 
         if (isset($Status)) {
             $D->where('status', $Status);
@@ -80,6 +108,14 @@ class ProblemReportTopicController extends Controller
                 $No = $No + 1;
                 $d[$i]->No = $No;
                 $d[$i]->problem_report_masters = ProblemReportMaster::where('problem_report_topic_id',$d[$i]->id)->get();
+                foreach ($d[$i]->problem_report_masters as $key => $value) {
+                    if($member_id){
+                        $d[$i]->problem_report_masters[$key]->problem_reports = ProblemReport::where('problem_report_topic_id',$d[$i]->id)->where('problem_report_master_id',$value['id'])->where('member_id',$member_id)->get();
+                    }else{
+                        $d[$i]->problem_report_masters[$key]->problem_reports = ProblemReport::where('problem_report_topic_id',$d[$i]->id)->where('problem_report_master_id',$value['id'])->get();
+                    }
+                    
+                }
             }
         }
 

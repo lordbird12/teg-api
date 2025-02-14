@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProblemReportMaster;
+use App\Models\ProblemReportTopic;
+use App\Models\ProblemReport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,6 +19,8 @@ class ProblemReportMasterController extends Controller
         if (!empty($Item)) {
             for ($i = 0; $i < count($Item); $i++) {
                 $Item[$i]['No'] = $i + 1;
+                $item->topic = ProblemReportTopic::find($item->problem_report_topic_id);
+
             }
         }
 
@@ -66,6 +70,8 @@ class ProblemReportMasterController extends Controller
             for ($i = 0; $i < count($d); $i++) {
                 $No = $No + 1;
                 $d[$i]->No = $No;
+                $d[$i]->topic = ProblemReportTopic::find($d[$i]->problem_report_topic_id);
+
             }
         }
 
@@ -156,7 +162,7 @@ class ProblemReportMasterController extends Controller
 
             DB::commit();
 
-            return $this->returnSuccess('ดำเนินการสำเร็จ');
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
         } catch (\Throwable $e) {
             DB::rollback();
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);

@@ -29,7 +29,7 @@ class OrderController extends Controller
                 $Item[$i]['No'] = $i + 1;
                 $Item[$i]['member'] = member::find($Item[$i]['member_id']);
                 $Item[$i]['order_lists'] = OrderList::where('order_id', $Item[$i]['id'])->get();
-                $Item[$i]['order_payment'] = OrderPayment::where('order_id', $Item[$i]['id'])->get();
+                $Item[$i]['order_payment'] = OrderPayment::where('ref_no', $Item[$i]['code'])->get();
             }
         }
 
@@ -186,7 +186,7 @@ class OrderController extends Controller
                     ->get();
                 }
                 $d[$i]->member = member::find($d[$i]->member_id);
-                $d[$i]->order_payment = OrderPayment::where('order_id',$d[$i]->id)->get();
+                $d[$i]->order_payment = OrderPayment::where('ref_no',$d[$i]->code)->get();
 
             }
         }
@@ -320,7 +320,7 @@ class OrderController extends Controller
                 ->where('order_list_id',$value['id'])
                 ->get();
             }
-            $Item->order_payment = OrderPayment::where('order_id', $id)->get();
+            $Item->order_payment = OrderPayment::where('ref_no', $Item->code)->get();
             foreach ($Item->order_payment as $key => $value) {
                 if($value['image'])
                 $Item->order_payment[$key]->image = url($value['image']);
@@ -426,6 +426,125 @@ class OrderController extends Controller
         }
     }
 
+    public function updateOrderTrack(Request $request)
+    {
+        $loginBy = $request->login_by;
+
+        if (!isset($request->track_ecommerce_no)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+        try {
+           
+                $Item = OrderList::find($request->order_list_id);
+                if($Item){
+                    $Item->track_ecommerce_no = $request->track_ecommerce_no;
+                    $Item->save();
+                }else{
+                    return $this->returnErrorData('ไม่พบข้อมูลรายการ', 404);
+                }
+                
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function updateStatusOrderList(Request $request)
+    {
+        $loginBy = $request->login_by;
+
+        if (!isset($request->order_list_id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+        try {
+            $Item = OrderList::find($request->order_list_id);
+            if($Item){
+                $Item->status = $request->status;
+                $Item->save();
+            }else{
+                return $this->returnErrorData('ไม่พบข้อมูลรายการ', 404);
+            }
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function updateStatusOrderListAll(Request $request)
+    {
+        $loginBy = $request->login_by;
+
+        if (!isset($request->order_lists)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+        try {
+
+            foreach ($request->order_lists as $key => $value) {
+                $Item = OrderList::find($value);
+                if($Item){
+                    $Item->status = $request->status;
+                    $Item->save();
+                }else{
+                    return $this->returnErrorData('ไม่พบข้อมูลรายการ', 404);
+                }
+            }
+           
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
 
     public function dashboard()
     {

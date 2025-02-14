@@ -17,6 +17,7 @@ use App\Models\OrderOption;
 use App\Models\AddOnService;
 use App\Models\DeliveryOrderListImages;
 use App\Models\StandardSize;
+use App\Models\ImportPO;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -50,6 +51,7 @@ class DeliveryOrderController extends Controller
                 $Item[$i]['No'] = $i + 1;
                 $Item[$i]['member'] = member::find($Item[$i]['member_id']);
                 $Item[$i]['delivery_order_lists'] = DeliveryOrderList::where('delivery_order_id', $Item[$i]['id'])->get();
+                $Item[$i]['import_po'] = ImportPO::where('delivery_order_id', $Item[$i]['id'])->first();
             }
         }
 
@@ -59,7 +61,7 @@ class DeliveryOrderController extends Controller
     public function getListByStatus($id)
     {
         // Define all possible statuses
-        $statuses = ['arrived_china_warehouse', 'in_transit', 'arrived_thailand_warehouse', 'awaiting_payment', 'delivered'];
+        $statuses = ['arrived_china_warehouse','in_transit','arrived_thailand_warehouse','awaiting_payment','delivered'];
 
         // Get orders for the member
         $Orders = DeliveryOrder::where('member_id', $id)->get();
@@ -220,8 +222,6 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->driver_name = $request->driver_name;
             $deliveryOrder->driver_phone = $request->driver_phone;
             $deliveryOrder->note = $request->note;
-            $deliveryOrder->status = $request->status;
-            $deliveryOrder->create_by = $request->create_by;
             $deliveryOrder->save();
 
             // Add delivery order lists

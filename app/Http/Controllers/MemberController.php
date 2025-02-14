@@ -9,6 +9,7 @@ use App\Models\MemberDetailAgent;
 use App\Models\MemberAddress;
 use App\Models\RegisterImporter;
 use App\Models\shop;
+use App\Models\TransportThaiMaster;
 use Carbon\Carbon;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
@@ -17,6 +18,32 @@ use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
+    public function searchAutoComplete(Request $request)
+    {
+        // ตรวจสอบการรับค่า search keyword
+        $keyword = $request->get('keyword');
+
+        if (!$keyword) {
+            return $this->returnErrorData('กรุณาระบุคำค้นหา', 400);
+        }
+
+        // ค้นหาข้อมูลจากรหัสสมาชิกหรือชื่อ
+        $items = Member::where('importer_code', 'like', '%' . $keyword . '%')
+            ->orWhere('fname', 'like', '%' . $keyword . '%')
+            ->limit(10) // จำกัดผลลัพธ์ที่แสดง
+            ->get();
+
+        // แปลง URL รูปภาพ
+        foreach ($items as $item) {
+            if ($item->image) {
+                $item->image = url($item->image);
+            }
+        }
+
+        return $this->returnSuccess('ค้นหาสำเร็จ', $items);
+    }
+
+
     public function getList()
     {
         $Item = member::get()->toarray();
@@ -44,13 +71,25 @@ class MemberController extends Controller
         $page = $start / $length + 1;
 
 
-        $col = array('id', 'code', 'member_type', 'fname', 'lname', 'phone', 'birth_date', 'gender',
-        'importer_code', 'password', 'referrer', 'address',
-        'province', 'district', 'sub_district', 'postal_code', 'image', 'create_by', 'update_by');
-
-        $orderby = array('', 'code', 'member_type', 'fname', 'lname', 'phone', 'birth_date', 'gender',
-        'importer_code', 'password', 'referrer', 'address',
-        'province', 'district', 'sub_district', 'postal_code', 'image', 'create_by', 'update_by');
+        $col = array(
+            'id', 'code', 'member_type', 'fname', 'lname', 'phone', 'birth_date', 'gender',
+            'importer_code', 'password', 'referrer', 'address', 'province', 'district',
+            'sub_district', 'postal_code', 'image', 'avaliable_time', 'credit_limit', 'loan_amount', 'bus_route', 'email', 
+            'facebook', 'line_id', 'wechat', 'notify_sms', 'notify_line', 'notify_email', 
+            'found_via', 'priority_update_tracking', 'priority_package_protection', 
+            'priority_order_system', 'responsible_person', 'responsible_sale', 
+            'responsible_remark', 'id_card_copy', 'company_certificate', 'pp20_document','language','create_by', 'update_by'
+        );
+        
+        $orderby = array(
+            '', 'code', 'member_type', 'fname', 'lname', 'phone', 'birth_date', 'gender',
+            'importer_code', 'password', 'referrer', 'address', 'province', 'district',
+            'sub_district', 'postal_code', 'image','avaliable_time', 'credit_limit', 'loan_amount', 'bus_route', 'email', 
+            'facebook', 'line_id', 'wechat', 'notify_sms', 'notify_line', 'notify_email', 
+            'found_via', 'priority_update_tracking', 'priority_package_protection', 
+            'priority_order_system', 'responsible_person', 'responsible_sale', 
+            'responsible_remark', 'id_card_copy', 'company_certificate', 'pp20_document','language','create_by', 'update_by'
+        );
 
         $D = member::select($col);
 
@@ -160,6 +199,39 @@ class MemberController extends Controller
             $Item->sub_district = $request->live_sub_district;
             $Item->postal_code = $request->live_postal_code;
 
+            // ข้อมูลเพิ่มเติมที่เพิ่มเข้ามา
+            $Item->avaliable_time = $request->avaliable_time; // morning, afternoon
+            $Item->credit_limit = $request->credit_limit;
+            $Item->loan_amount = $request->loan_amount;
+            $Item->bus_route = $request->bus_route;
+            $Item->email = $request->email;
+            $Item->facebook = $request->facebook;
+            $Item->line_id = $request->line_id;
+            $Item->wechat = $request->wechat;
+
+            // การแจ้งเตือน
+            $Item->notify_sms = $request->notify_sms;
+            $Item->notify_line = $request->notify_line;
+            $Item->notify_email = $request->notify_email;
+
+            // ช่องทางที่รู้จัก
+            $Item->found_via = $request->found_via;
+
+            // ความสำคัญของบริการ
+            $Item->priority_update_tracking = $request->priority_update_tracking;
+            $Item->priority_package_protection = $request->priority_package_protection;
+            $Item->priority_order_system = $request->priority_order_system;
+
+            // ข้อมูลผู้ดูแล
+            $Item->responsible_person = $request->responsible_person;
+            $Item->responsible_sale = $request->responsible_sale;
+            $Item->responsible_remark = $request->responsible_remark;
+
+            // เอกสารแนบ
+            $Item->id_card_copy = $request->id_card_copy;
+            $Item->company_certificate = $request->company_certificate;
+            $Item->pp20_document = $request->pp20_document;
+            $Item->language = $request->language;
             $Item->save();
 
             if($Item){
@@ -288,6 +360,11 @@ class MemberController extends Controller
                 if($Item->detail->cargo_image){
                     $Item->detail->cargo_image = url($Item->detail->cargo_image);
                 }
+            }
+            $Item->detail->transport_thai_master = TransportThaiMaster::find($Item->detail->transport_thai_master_id);
+            if($Item->detail->transport_thai_master){
+                if($Item->detail->transport_thai_master->image)
+                $Item->detail->transport_thai_master->image = url($Item->detail->transport_thai_master->image);
             }
             $Item->ship_address = MemberAddress::where('member_id',$Item->id)->get();
 
@@ -455,63 +532,120 @@ class MemberController extends Controller
     }
 
 
-    public function openShop(Request $request)
+    public function updateAddress(Request $request)
     {
-        if (!isset($request->member_id)) {
-            return $this->returnErrorData('กรุณาระบุรหัสสมาชิกให้เรียบร้อย', 404);
-        } 
+        // Validate ข้อมูลที่รับเข้ามา
+        $validator = Validator::make($request->all(), [
+            'member_id'   => 'required|integer|exists:members,id',
+            'address'     => 'nullable|string|max:255',
+            'province'    => 'nullable|string|max:255',
+            'district'    => 'nullable|string|max:255',
+            'sub_district'=> 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:255',
+            'latitude'    => 'nullable|numeric|between:-90,90',
+            'longitude'   => 'nullable|numeric|between:-180,180',
+        ]);
 
-        $check1 = shop::where('member_id',$request->member_id)->first();
-        if ($check1) {
-            return $this->returnErrorData('คุณได้เปิดร้านค้านี้แล้วในระบบ', 404);
+        // หากตรวจสอบไม่ผ่านให้ส่ง error กลับ
+        if ($validator->fails()) {
+            return $this->returnErrorData($validator->errors()->first(), 400);
         }
 
-        $ItemMember = member::find($request->member_id);
-        if (!$ItemMember) {
-            return $this->returnErrorData('ไม่พบบัญชีผู้ใช้นี้ในระบบ', 404);
+        DB::beginTransaction();
+        
+        try {
+            $item = new MemberAddress(); // เปลี่ยนเป็น Model ของคุณ
+            $item->member_id = $request->member_id;
+            $item->address = $request->address;
+            $item->province = $request->province;
+            $item->district = $request->district;
+            $item->sub_district = $request->sub_district;
+            $item->postal_code = $request->postal_code;
+            $item->latitude = $request->latitude;
+            $item->longitude = $request->longitude;
+            $item->save();
+
+            DB::commit();
+
+            return $this->returnSuccess('เพิ่มข้อมูลสำเร็จ', $item);
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e->getMessage(), 500);
         }
+    }
+
+    public function destroyAddress($id)
+    {
+        DB::beginTransaction();
 
         try {
-            $Item = new shop();
-            $prefix = "#SH-";
-            $id = IdGenerator::generate(['table' => 'shops', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
-            $Item->code = $id;
-            $Item->member_id = $request->member_id;
-            $Item->name = $request->name;
-            $Item->phone = $request->phone;
-            $Item->address = $request->address;
-            $Item->lat = $request->lat;
-            $Item->lon = $request->lon;
-            $Item->open = 'Yes';
-            $Item->image = $request->image;
 
-            // if ($request->image && $request->image != null && $request->image != 'null') {
-            //     $Item->image = $this->uploadImage($request->image, '/images/shops/');
-            // }
-
-            $Item->save();
-
-            if($ItemMember){
-                $ItemMember->shop = "Request";
-                $ItemMember->save();
-            }
-    
+            $Item = MemberAddress::find($id);
+            $Item->delete();
 
             //log
             $userId = "admin";
-            $type = 'เพิ่มรายการ';
-            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
+            $type = 'ลบผู้ใช้งาน';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
             //
 
             DB::commit();
 
-            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
         } catch (\Throwable $e) {
 
             DB::rollback();
 
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function updateMemberAddress(Request $request, $id)
+    {
+        // ตรวจสอบค่าที่รับเข้ามา
+        $validator = Validator::make($request->all(), [
+            'member_id'   => 'required|integer|exists:members,id',
+            'address'     => 'nullable|string|max:255',
+            'province'    => 'nullable|string|max:255',
+            'district'    => 'nullable|string|max:255',
+            'sub_district'=> 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:10',
+            'latitude'    => 'nullable|numeric|between:-90,90',
+            'longitude'   => 'nullable|numeric|between:-180,180',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->returnErrorData($validator->errors()->first(), 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // ค้นหาข้อมูลที่อยู่ของสมาชิก
+            $address = MemberAddress::find($id);
+
+            if (!$address) {
+                return $this->returnErrorData('ไม่พบข้อมูลที่อยู่', 404);
+            }
+
+            // อัปเดตข้อมูล
+            $address->member_id   = $request->member_id;
+            $address->address     = $request->address;
+            $address->province    = $request->province;
+            $address->district    = $request->district;
+            $address->sub_district= $request->sub_district;
+            $address->postal_code = $request->postal_code;
+            $address->latitude    = $request->latitude;
+            $address->longitude   = $request->longitude;
+            $address->save();
+
+            DB::commit();
+
+            return $this->returnSuccess('อัปเดตที่อยู่สำเร็จ', $address);
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e->getMessage(), 500);
         }
     }
 

@@ -40,6 +40,8 @@ use App\Http\Controllers\ProblemReportMasterController;
 use App\Http\Controllers\ProblemReportTopicController;
 use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\ImportPOController;
+use App\Http\Controllers\CategoryFeeMasterController;
+use App\Http\Controllers\FeeMasterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -116,6 +118,10 @@ Route::post('/member_page', [MemberController::class, 'getPage']);
 Route::get('/get_member', [MemberController::class, 'getList']);
 Route::post('/update_member', [MemberController::class, 'updateData']);
 Route::post('open_shop', [MemberController::class, 'openShop']);
+Route::post('/search_auto_complete', [MemberController::class, 'searchAutoComplete']);
+Route::post('/member_address', [MemberController::class, 'updateAddress']);
+Route::delete('/member_address/{id}', [MemberController::class, 'destroyAddress']);
+Route::put('/update_member_address/{id}', [MemberController::class, 'updateMemberAddress']);
 
 // Store
 Route::resource('store', StoreController::class);
@@ -181,6 +187,9 @@ Route::post('/orders_page', [OrderController::class, 'getPage']);
 Route::get('/get_orders', [OrderController::class, 'getList']);
 Route::post('/update_status_order', [OrderController::class, 'updateStatus']);
 Route::get('/get_orders_by_member/{id}', [OrderController::class, 'getListByStatus']);
+Route::post('/update_track_no', [OrderController::class, 'updateOrderTrack']);
+Route::post('/update_status_order_list', [OrderController::class, 'updateStatusOrderList']);
+Route::post('/update_status_order_list_all', [OrderController::class, 'updateStatusOrderListAll']);
 
 // Delivery Order
 Route::resource('delivery_orders', DeliveryOrderController::class);
@@ -253,6 +262,7 @@ Route::get('/get_problem_report_master', [ProblemReportMasterController::class, 
 Route::resource('problem_report_topic', ProblemReportTopicController::class);
 Route::post('/problem_report_topic_page', [ProblemReportTopicController::class, 'getPage']);
 Route::get('/get_problem_report_topic', [ProblemReportTopicController::class, 'getList']);
+Route::get('/get_problem_report_topic_by_member/{id}', [ProblemReportTopicController::class, 'getListByMember']);
 
 // About us
 Route::resource('about_us', AboutUsController::class);
@@ -263,11 +273,24 @@ Route::resource('import_product_order', ImportProductOrderController::class);
 Route::post('/import_product_order_page', [ImportProductOrderController::class, 'getPage']);
 Route::get('/get_import_product_order', [ImportProductOrderController::class, 'getList']);
 Route::post('/update_import_product_order', [ImportProductOrderController::class, 'updateData']);
+Route::post('/update_fee_amount', [ImportProductOrderController::class, 'updateStatus']);
+Route::post('/update_file_import_product_order', [ImportProductOrderController::class, 'updateFileData']);
+Route::get('/get_import_product_order_by_member/{id}', [ImportProductOrderController::class, 'getListByStatus']);
 
 // Import PO
-Route::resource('import_po', ProblemReportController::class);
-Route::post('/import_po_page', [ProblemReportController::class, 'getPage']);
-Route::get('/get_import_po/{id}', [ProblemReportController::class, 'getList']);
+Route::resource('import_po', ImportPOController::class);
+Route::post('/import_po_page', [ImportPOController::class, 'getPage']);
+Route::get('/get_import_po/{id}', [ImportPOController::class, 'getList']);
+
+// Category Fee
+Route::resource('category_fee', CategoryFeeMasterController::class);
+Route::post('/category_fee_page', [CategoryFeeMasterController::class, 'getPage']);
+Route::get('/get_category_fee/{type}', [CategoryFeeMasterController::class, 'getList']);
+
+// Fee
+Route::resource('fee', FeeMasterController::class);
+Route::post('/fee_page', [FeeMasterController::class, 'getPage']);
+Route::get('/get_fee', [FeeMasterController::class, 'getList']);
 
 Route::put('/update_password_user/{id}', [UserController::class, 'updatePasswordUser']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

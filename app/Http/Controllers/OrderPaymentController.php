@@ -4,6 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderPayment;
 use App\Models\Order;
+use App\Models\OrderList;
+use App\Models\DeliveryOrder;
+use App\Models\DeliveryOrderList;
+use App\Models\ImportPO;
+use App\Models\ImportProductOrder;
+use App\Models\ImportProductOrderList;
+use App\Models\ImportProductOrderListFee;
 use App\Models\member;
 use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
@@ -35,8 +42,8 @@ class OrderPaymentController extends Controller
         $start = $request->start;
         $page = $start / $length + 1;
 
-        $col = ['id', 'member_id', 'order_id', 'date', 'total_price', 'note', 'image', 'created_at', 'updated_at'];
-        $orderby = ['', 'member_id', 'order_id', 'total_price'];
+        $col = ['id', 'member_id', 'ref_no','order_type' ,'date', 'total_price', 'note', 'image', 'created_at', 'updated_at'];
+        $orderby = ['', 'member_id', 'ref_no', 'order_type' ,'total_price'];
 
         $D = OrderPayment::select($col);
 
@@ -71,27 +78,72 @@ class OrderPaymentController extends Controller
 
     public function store(Request $request)
     {
-        if (!isset($request->member_id) || !isset($request->order_id)) {
+        if (!isset($request->member_id) || !isset($request->ref_no)) {
             return $this->returnErrorData('กรุณาระบุข้อมูลให้ครบถ้วน', 404);
         }
 
-        $check = Order::find($request->order_id);
-      
-        if (!$check) {
-            return $this->returnErrorData('ไม่พบรายการสั่งซื้อนี้ กรุณาเปลี่ยนเป็นรหัสอื่น', 404);
-        }else{
-            if($check->status == "awaiting_summary"){
-                return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนการสรุปยอด ยังไม่สามารถรับชำระเงินได้', 404);
-            }else if($check->status == "in_progress"){
-                return $this->returnErrorData('รายการสั่งซื้อมีการชำระเงินแล้ว', 404);
-            }else if($check->status == "preparing_shipment"){
-                return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนกำลังเตรียมการจัดส่ง', 404);
-            }else if($check->status == "shipped"){
-                return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนจัดส่งแล้ว', 404);
-            }else if($check->status == "cancelled"){
-                return $this->returnErrorData('รายการสั่งซื้อถูกยกเลิกแล้ว', 404);
+       if($request->order_type == "order"){
+            $check = Order::where('code',$request->ref_no)->first();
+            if($check){
+                if($check->status == "awaiting_summary"){
+                    return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนการสรุปยอด ยังไม่สามารถรับชำระเงินได้', 404);
+                }else if($check->status == "in_progress"){
+                    return $this->returnErrorData('รายการสั่งซื้อมีการชำระเงินแล้ว', 404);
+                }else if($check->status == "preparing_shipment"){
+                    return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนกำลังเตรียมการจัดส่ง', 404);
+                }else if($check->status == "shipped"){
+                    return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนจัดส่งแล้ว', 404);
+                }else if($check->status == "cancelled"){
+                    return $this->returnErrorData('รายการสั่งซื้อถูกยกเลิกแล้ว', 404);
+                }else{
+                    $status = "in_progress";
+                }
+            }else{
+                return $this->returnErrorData('ไม่พบรายการที่ท่านอ้างอิงอยู่ กรุณาตรวจสอบ', 404);
             }
+       }else if($request->order_type == "delivery"){
+                $check = DeliveryOrder::where('code',$request->ref_no)->first();
+                if($check){
+                    if($check->status == "awaiting_summary"){
+                        return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนการสรุปยอด ยังไม่สามารถรับชำระเงินได้', 404);
+                    }else if($check->status == "in_progress"){
+                        return $this->returnErrorData('รายการสั่งซื้อมีการชำระเงินแล้ว', 404);
+                    }else if($check->status == "preparing_shipment"){
+                        return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนกำลังเตรียมการจัดส่ง', 404);
+                    }else if($check->status == "shipped"){
+                        return $this->returnErrorData('รายการสั่งซื้ออยู่ในขั้นตอนจัดส่งแล้ว', 404);
+                    }else if($check->status == "cancelled"){
+                        return $this->returnErrorData('รายการสั่งซื้อถูกยกเลิกแล้ว', 404);
+                    }else{
+                        $status = "delivered";
+                    }
+                }else{
+                    return $this->returnErrorData('ไม่พบรายการที่ท่านอ้างอิงอยู่ กรุณาตรวจสอบ', 404);
+                }
+        }else if($request->order_type == "import"){
+            
+            // 'importing_documents','waiting_for_document_review','waiting_for_tax_payment','in_process','completed'
+                $check = ImportProductOrder::where('code',$request->ref_no)->first();
+             
+                if($check){
+                    if($check->status == "importing_documents"){
+                        return $this->returnErrorData('รายการนี้อยู่ในขั้นตอนยื่นตรวจสอบเอกสาร', 404);
+                    }else if($check->status == "waiting_for_document_review"){
+                        return $this->returnErrorData('รายการนี้อยู่ในขั้นตอนตรวจสอบเอกสาร', 404);
+                    }else if($check->status == "in_progress"){
+                        return $this->returnErrorData('รายการนี้อยู่ในขั้นตอนจัดทำเอกสาร', 404);
+                    }else if($check->status == "completed"){
+                        return $this->returnErrorData('รายการนี้ได้ดำเนินการเสร็จสิ้นแล้ว', 404);
+                    }else{
+                        $status = "in_progress";
+                    }
+                }else{
+                    return $this->returnErrorData('ไม่พบรายการที่ท่านอ้างอิงอยู่ กรุณาตรวจสอบ', 404);
+                }
+        }else{
+            return $this->returnErrorData('ประเภทการทำรายการไม่ถูกต้อง', 404);
         }
+        
 
         if($request->payment_type == "wallet"){
             $checkWallet = member::find($request->member_id);
@@ -102,6 +154,8 @@ class OrderPaymentController extends Controller
                     return $this->returnErrorData('เงินของคุณมีไม่เพียงพอ กรุณาเติมเงิน', 404);
                 }
             }
+        }else{
+            return $this->returnErrorData('ระบบรองรับการชำระเงินรูปแบบ Wallet เท่านั้น ขณะนี้', 404);
         }
 
         DB::beginTransaction();
@@ -109,17 +163,18 @@ class OrderPaymentController extends Controller
         try {
             $Item = new OrderPayment();
             $Item->member_id = $request->member_id;
-            $Item->order_id = $request->order_id;
+            $Item->ref_no = $request->ref_no;
             $Item->date = $request->date;
             $Item->total_price = $request->total_price;
             $Item->note = $request->note;
             $Item->image = $request->image;
             $Item->payment_type = $request->payment_type;
+            $Item->order_type = $request->order_type;
 
             $Item->save();
 
             if($Item){
-                $check->status = 'in_progress';
+                $check->status = $status;
                 $check->save();
 
                 $ItemWallet = new WalletTransaction();
@@ -170,13 +225,14 @@ class OrderPaymentController extends Controller
 
         try {
             $Item = OrderPayment::find($id);
-            $Item->member_id = $request->member_id ?? $Item->member_id;
-            $Item->order_id = $request->order_id ?? $Item->order_id;
-            $Item->date = $request->date ?? $Item->date;
-            $Item->total_price = $request->total_price ?? $Item->total_price;
-            $Item->note = $request->note ?? $Item->note;
-
+            $Item->member_id = $request->member_id;
+            $Item->ref_no = $request->ref_no;
+            $Item->date = $request->date;
+            $Item->total_price = $request->total_price;
+            $Item->note = $request->note;
             $Item->image = $request->image;
+            $Item->payment_type = $request->payment_type;
+            $Item->order_type = $request->order_type;
 
             $Item->save();
 

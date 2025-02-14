@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ImportPO;
 use App\Models\ImportProductOrder;
 use App\Models\ImportProductOrderList;
 use App\Models\ImportProductOrderListFee;
 use App\Models\FeeMaster;
 use App\Models\CategoryFeeMaster;
+use App\Models\DeliveryOrderList;
+use App\Models\DeliveryOrderTracking;
+use App\Models\Order;
+use App\Models\OrderList;
+use App\Models\DeliveryOrder;
+use App\Models\member;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -44,49 +51,64 @@ class ImportProductOrderController extends Controller
     {
         $loginBy = $request->login_by;
 
+        if(!$request->import_product_order_id){
+            return $this->returnErrorData('ไม่พบเลข PO ในระบบ', 404);
+        }
+        
+
         DB::beginTransaction();
 
         try {
             // Create ImportProductOrder
-            $importOrder = new ImportProductOrder();
-            $importOrder->code = $request->code;
+            $importOrder = ImportProductOrder::find($request->import_product_order_id);
+            $prefix = "#IO-";
+            $id = IdGenerator::generate(['table' => 'import_product_orders', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
+
+            $importOrder->code = $id;
             $importOrder->register_importer_id = $request->register_importer_id;
             $importOrder->store_id = $request->store_id;
             $importOrder->note = $request->note;
-            $importOrder->status = $request->status;
             $importOrder->invoice_file = $request->invoice_file;
             $importOrder->packinglist_file = $request->packinglist_file;
             $importOrder->license_file = $request->license_file;
             $importOrder->save();
 
+            foreach ($request->fees as $fee) {
+                $feeMaster = FeeMaster::find($fee['fee_master_id']);
+                if($feeMaster){
+                    $importOrderListFee = new ImportProductOrderListFee();
+                    $importOrderListFee->import_product_order_id = $importOrder->id;
+                    $importOrderListFee->fee_master_id = $fee['fee_master_id'];
+                    $importOrderListFee->amount = $feeMaster->price;
+                    $importOrderListFee->save();
+                }
+            }
+
             // Add ImportProductOrderLists
             foreach ($request->lists as $list) {
-                $importOrderList = new ImportProductOrderList();
-                $importOrderList->import_product_order_id = $importOrder->id;
-                $importOrderList->product_type_id = $list['product_type_id'];
-                $importOrderList->product_name = $list['product_name'];
-                $importOrderList->track_no = $list['track_no'];
-                $importOrderList->weight = $list['weight'];
-                $importOrderList->width = $list['width'];
-                $importOrderList->height = $list['height'];
-                $importOrderList->long = $list['long'];
-                $importOrderList->qty = $list['qty'];
-                $importOrderList->create_by = $request->create_by;
-                $importOrderList->save();
-
-                // Add ImportProductOrderListFees
-                if (isset($list['fees']) && is_array($list['fees'])) {
-                    foreach ($list['fees'] as $fee) {
-                        $importOrderListFee = new ImportProductOrderListFee();
-                        $importOrderListFee->import_product_order_id = $importOrder->id;
-                        $importOrderListFee->import_product_or_ls_id = $importOrderList->id;
-                        $importOrderListFee->fee_master_id = $fee['fee_master_id'];
-                        $importOrderListFee->amount = $fee['amount'];
-                        $importOrderListFee->status = $fee['status'];
-                        $importOrderListFee->create_by = $request->create_by;
-                        $importOrderListFee->save();
-                    }
+                $deliveryLists = DeliveryOrderList::find($list['delivery_order_list_id']);
+                if($deliveryLists){
+                    $importOrderList = new ImportProductOrderList();
+                    $importOrderList->import_product_order_id = $importOrder->id;
+                    $importOrderList->product_type_id = $deliveryLists->product_type_id;
+                    $importOrderList->product_name = $deliveryLists->product_name;
+                    $importOrderList->product_image = $deliveryLists->product_image;
+                    $importOrderList->standard_size_id = $deliveryLists->standard_size_id;
+                    $importOrderList->delivery_order_tracking_id = $deliveryLists->delivery_order_tracking_id;
+                    $importOrderList->weight = $deliveryLists->weight;
+                    $importOrderList->width = $deliveryLists->width;
+                    $importOrderList->height = $deliveryLists->height;
+                    $importOrderList->long = $deliveryLists->long;
+                    $importOrderList->qty = $deliveryLists->qty;
+                    $importOrderList->qty_box = $deliveryLists->qty_box;
+                    $importOrderList->save();
                 }
+              
+            }
+
+            if ($importOrder) {
+                $importOrder->status = "waiting_for_document_review";
+                $importOrder->save();
             }
 
             DB::commit();
@@ -105,9 +127,34 @@ class ImportProductOrderController extends Controller
      * @param  \App\Models\ImportProductOrder  $importProductOrder
      * @return \Illuminate\Http\Response
      */
-    public function show(ImportProductOrder $importProductOrder)
+    public function show($id)
     {
-        //
+        $Item = ImportProductOrder::where('id', $id)
+            ->first();
+
+        if ($Item) {
+            if($Item->file){
+                $Item->file = url($Item->file);
+            }
+            $Item->member = member::find($Item->member_id);
+            $Item->delivery_order = DeliveryOrder::find($Item->delivery_order_id);
+            if($Item->delivery_order){
+                $Item->delivery_order->deliverty_order_lists = DeliveryOrderList::where('delivery_order_id', $Item->delivery_order_id)->get();
+                
+            }
+            $Item->delivery_order_tracks = DeliveryOrderTracking::where('delivery_order_id', $Item->delivery_order_id)->get();
+
+            // foreach ($Item->delivery_order_tracks as $key => $value) {
+            //     $Item->delivery_order_tracks[$key]->delivery_order_lists = DeliveryOrderList::where('delivery_order_id', $id)->get();
+            //     foreach ($Item->delivery_order_tracks[$key]->delivery_order_lists as $key2 => $value2) {
+            //         $Item->delivery_order_tracks[$key]->delivery_order_lists[$key2]->standard_size = StandardSize::find($value2['standard_size_id']);
+            //         $Item->delivery_order_tracks[$key]->delivery_order_lists[$key2]->images = DeliveryOrderListImages::where('delivery_order_list_id',$value2['id'])
+            //         ->get();
+            //     }
+            // }           
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
     /**
@@ -143,4 +190,139 @@ class ImportProductOrderController extends Controller
     {
         //
     }
+
+    public function updateStatus(Request $request)
+    {
+        $loginBy = $request->login_by;
+
+        if (!isset($request->import_product_order_id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+        try {
+            foreach ($request->fees as $key => $value) {
+                $Item = ImportProductOrderListFee::where('import_product_order_id',$request->import_product_order_id)
+                ->where('fee_master_id',$value['fee_master_id'])
+                ->first();
+                
+                if($Item){
+                    $Item->amount = $value['amount'];
+                    $Item->save();
+                }
+            }
+
+            $check = ImportProductOrder::find($request->import_product_order_id);
+      
+            if (!$check) {
+                return $this->returnErrorData('ไม่พบรายการสั่งซื้อนี้ กรุณาเปลี่ยนเป็นรหัสอื่น', 404);
+            }else{
+                $check->status = "waiting_for_tax_payment";
+                $check->save();
+            }
+
+           
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function updateFileData(Request $request)
+    {
+        $loginBy = $request->login_by;
+
+        if (!isset($request->import_product_order_id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+        try {
+           
+            $Item = ImportProductOrder::find($request->import_product_order_id);
+      
+            if (!$Item) {
+                return $this->returnErrorData('ไม่พบรายการสั่งซื้อนี้ กรุณาเปลี่ยนเป็นรหัสอื่น', 404);
+            }else{
+                $Item->file = $request->file;
+                $Item->status = "completed";
+                $Item->save();
+            }
+
+           
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function getListByStatus($id)
+    {
+        // Define all possible statuses
+        $statuses = ['importing_documents','waiting_for_document_review','waiting_for_tax_payment','in_progress','completed'];
+
+        // Get orders for the member
+        $Orders = ImportProductOrder::where('member_id', $id)->get();
+
+        $orderIds = [];
+        foreach ($Orders as $order) {
+            $orderIds[] = $order->id;
+        }
+
+        // Group delivery orders by status
+        $itemsGrouped = ImportProductOrder::whereIn('id', $orderIds)->get()->groupBy('status');
+
+        $result = [];
+
+        foreach ($statuses as $status) {
+            $group = [
+                'status' => $status,
+                'import_orders' => []
+            ];
+
+            if (isset($itemsGrouped[$status])) {
+                foreach ($itemsGrouped[$status] as $item) {
+                    $order = $item->toArray();
+                    $order['member'] = member::find($item->member_id);
+                    $order['import_order_lists'] = ImportProductOrderList::where('import_product_order_id', $item->id)->get();
+                    $group['import_orders'][] = $order;
+                }
+            }
+
+            $result[] = $group;
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $result);
+    }
+
 }

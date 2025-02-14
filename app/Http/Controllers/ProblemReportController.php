@@ -200,10 +200,26 @@ class ProblemReportController extends Controller
 
             DB::commit();
 
-            return $this->returnSuccess('ลบข้อมูลสำเร็จ');
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
         } catch (\Throwable $e) {
             DB::rollback();
             return $this->returnErrorData('เกิดข้อผิดพลาด ' . $e->getMessage(), 500);
         }
+    }
+
+    public function show($id)
+    {
+        $Item = ProblemReport::find($id);
+        if ($Item) {
+            $Item->topic = ProblemReportTopic::find($Item->problem_report_topic_id);
+            $Item->master = ProblemReportMaster::find($Item->problem_report_master_id);
+            $Item->images = ProblemReportImages::where('problem_report_id',$Item->id)->get();
+            foreach ($Item->images as $key => $value) {
+                if($Item->images[$key]->image)
+                $Item->images[$key]->image = url($Item->images[$key]->image);
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 }
