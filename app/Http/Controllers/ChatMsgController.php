@@ -245,7 +245,7 @@ class ChatMsgController extends Controller
             // ส่งข้อความไปยัง API
             $messageData = [
                 'message' => $request->message,
-                'chatId' => $Chat->room_name,
+                'chatId' => $Chat->id,
                 'messagePosition' => $request->message_position,
                 'location' => 'teg'
             ];
