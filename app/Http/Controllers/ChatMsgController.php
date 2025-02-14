@@ -238,13 +238,18 @@ class ChatMsgController extends Controller
 
             $Chat_msg->save();
 
+            $Message =  $request->message;
+            if ($request->type == 'image') {
+                $Message = url($Message);
+            }
+
 
             $socketURL = config('services.socket.socket_chat_url');
 
 
             // ส่งข้อความไปยัง API
             $messageData = [
-                'message' => $request->message,
+                'message' => $Message,
                 'chatId' => $Chat->id,
                 'messagePosition' => $request->message_position,
                 'location' => 'teg'
