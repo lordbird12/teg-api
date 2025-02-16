@@ -252,7 +252,7 @@ class ChatController extends Controller
         if ($Chat) {
 
             for ($i = 0; $i < count($Chat->chat_msgs); $i++) {
-                if ($Chat->chat_msgs[$i]->type == 'image') {
+                if ($Chat->chat_msgs[$i]->type == 'image' || $Chat->chat_msgs[$i]->type == 'file') {
                     $Chat->chat_msgs[$i]->message = url($Chat->chat_msgs[$i]->message);
                 }
             }
