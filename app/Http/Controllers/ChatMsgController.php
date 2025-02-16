@@ -251,6 +251,7 @@ class ChatMsgController extends Controller
             $messageData = [
                 'message' => $Message,
                 'chatId' => $Chat->id,
+                'messageType' => $request->type,
                 'messagePosition' => $request->message_position,
                 'location' => 'teg'
             ];

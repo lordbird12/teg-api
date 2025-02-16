@@ -232,7 +232,7 @@ class ChatController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '. $e, 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
 
@@ -248,6 +248,15 @@ class ChatController extends Controller
             ->with('chat_msgs')
 
             ->find($id);
+
+        if ($Chat) {
+
+            for ($i = 0; $i < count($Chat->chat_msgs); $i++) {
+                if ($Chat->chat_msgs[$i]->type == 'image') {
+                    $Chat->chat_msgs[$i]->message = url($Chat->chat_msgs[$i]->message);
+                }
+            }
+        }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Chat);
     }
