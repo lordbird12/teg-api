@@ -9,6 +9,16 @@ class ImportProductOrder extends Model
 {
     use HasFactory;
 
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function deliveryOrder()
+    {
+        return $this->belongsTo(DeliveryOrder::class);
+    }
+
     public function registerImporter()
     {
         return $this->belongsTo(RegisterImporter::class);

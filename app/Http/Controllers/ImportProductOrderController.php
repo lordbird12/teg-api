@@ -52,10 +52,12 @@ class ImportProductOrderController extends Controller
 
 
 
-        $col = ['id', 'code', 'register_importer_id', 'store_id', 'note', 'status', 'invoice_file', 'packinglist_file', 'license_file', 'created_at', 'updated_at'];
-        $orderby = ['', 'code', 'register_importer_id', 'store_id', 'note', 'status', 'invoice_file', 'packinglist_file', 'license_file', 'created_at', 'updated_at'];
+        $col = ['id', 'code', 'member_id', 'delivery_order_id', 'import_po_id', 'register_importer_id', 'store_id', 'note', 'status', 'invoice_file', 'packinglist_file', 'license_file', 'file', 'total_expenses', 'created_at', 'updated_at'];
+        $orderby = ['', 'code', 'member_id', 'delivery_order_id', 'import_po_id', 'register_importer_id', 'store_id', 'note', 'status', 'invoice_file', 'packinglist_file', 'license_file', 'file', 'total_expenses', 'created_at', 'updated_at'];
 
         $query = ImportProductOrder::select($col)
+            ->with('member')
+            ->with('deliveryOrder')
             ->with('store')
             ->with('registerImporter');
 
@@ -76,6 +78,10 @@ class ImportProductOrderController extends Controller
         if (!empty($data)) {
             for ($i = 0; $i < count($data); $i++) {
                 $data[$i]['No'] = $i + 1;
+                if ($data[$i]['file']) {
+                    $data[$i]['file'] = url($data[$i]['file']);
+                }
+
                 if ($data[$i]['invoice_file']) {
                     $data[$i]['invoice_file'] = url($data[$i]['invoice_file']);
                 }
@@ -186,7 +192,11 @@ class ImportProductOrderController extends Controller
      */
     public function show($id)
     {
-        $Item = ImportProductOrder::where('id', $id)
+        $Item = ImportProductOrder::with('member')
+            ->with('deliveryOrder')
+            ->with('store')
+            ->with('registerImporter')
+            ->where('id', $id)
             ->first();
 
         if ($Item) {
