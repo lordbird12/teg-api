@@ -11,7 +11,7 @@ class ImportProductOrder extends Model
 
     public function member()
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(member::class);
     }
 
     public function deliveryOrder()
