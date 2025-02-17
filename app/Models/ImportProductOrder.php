@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class ImportProductOrder extends Model
 {
     use HasFactory;
+
+    public function registerImporter()
+    {
+        return $this->belongsTo(RegisterImporter::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 }
